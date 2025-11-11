@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: theme('fontFamily.body');
+    background-color: theme('colors.canvas');
+    color: theme('colors.ink');
+  }
+
+  h1, h2, h3, h4 {
+    font-family: theme('fontFamily.display');
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-md bg-ink text-white hover:bg-zinc-900 transition;
+  }
+
+  .card {
+    @apply bg-white shadow-sm rounded-lg overflow-hidden border border-zinc-100;
+  }
+}

@@ -1,0 +1,22 @@
+{
+    "name": "arossi/artwork-portfolio",
+    "description": "Artist portfolio with admin CMS and WhatsApp inquiries",
+    "type": "project",
+    "require": {
+        "php": "^8.1",
+        "vlucas/phpdotenv": "^5.6",
+        "respect/validation": "^2.2",
+        "ramsey/uuid": "^4.7",
+        "intervention/image": "^2.7",
+        "phpmailer/phpmailer": "^6.9"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}

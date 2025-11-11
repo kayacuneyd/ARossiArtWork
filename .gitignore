@@ -1,0 +1,12 @@
+/vendor/
+/node_modules/
+/.env
+/.env.example
+/storage/uploads/
+/storage/thumbs/
+/storage/webp/
+/storage/database.sqlite
+/public/assets/css/tailwind.css
+.DS_Store
+.idea/
+.vscode/
