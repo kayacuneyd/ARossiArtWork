@@ -12,6 +12,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build Tailwind CSS
+        run: npm run build:css
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: composer:v2
+
+      - name: Install Composer dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction
+
       - name: Sync files to shared hosting
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -19,3 +40,22 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           server-dir: /public_html/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            .github/
+            node_modules/
+            resources/
+            tailwind.config.js
+            package.json
+            package-lock.json
+            README.md
+            sample.jpg
+            database/
+            storage/database.sqlite
+            composer.json
+            composer.lock
+            .env.example
+            .DS_Store
+            .idea/
+            .vscode/

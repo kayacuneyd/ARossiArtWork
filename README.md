@@ -1,4 +1,4 @@
-# Alexandre Mike Rossi Artworks Portfolioo
+# Alexandre Mike Rossi Artworks Portfoliooo
 
 A minimalist PHP + Tailwind portfolio for Bournemouth-based painter Alexandre Mike Rossi. The site provides a responsive gallery, WhatsApp-powered inquiries, and an admin dashboard to manage artworks, media processing, and incoming leads.
 
