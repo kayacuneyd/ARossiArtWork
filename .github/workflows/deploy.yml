@@ -15,7 +15,7 @@ jobs:
       - name: Sync files to shared hosting
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ftp.turkogluenes.com
+          server: ftp.arossiartwork.com
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           server-dir: /public_html/
