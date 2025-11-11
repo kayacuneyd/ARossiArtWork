@@ -73,7 +73,17 @@ A minimalist PHP + Tailwind portfolio for Bournemouth-based painter Alexandre Mi
 - Redirects to `https://api.whatsapp.com/send?phone=...&text=...` using number stored in settings.
 - Optional email notification using PHPMailer (skipped silently if SMTP unavailable).
 
-## Hostinger Deployment Notes
+## Deployment
+
+### Automated Deployment (Recommended)
+This repository includes automated FTP deployment via GitHub Actions. When you push to the `main` branch:
+- Code is automatically built (Tailwind CSS + Composer dependencies)
+- Files are deployed to your Hostinger account via FTP
+- Only production files are uploaded (development files are excluded)
+
+**See [DEPLOYMENT.md](DEPLOYMENT.md) for complete setup instructions** and [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for common issues.
+
+### Hostinger Initial Setup (Required Before First Deploy)
 1. **Document root**: point the domain/subdomain to the `public/` directory (e.g. move files so `public` → `public_html`).
 2. **PHP version**: set to 8.1+ via hPanel → Advanced → PHP Configuration.
 3. **php.ini overrides** (hPanel > PHP Configuration > Options):
