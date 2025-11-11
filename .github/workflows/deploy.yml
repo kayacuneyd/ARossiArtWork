@@ -51,7 +51,6 @@ jobs:
             package-lock.json
             README.md
             sample.jpg
-            database/
             storage/database.sqlite
             composer.json
             composer.lock
