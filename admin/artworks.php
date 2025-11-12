@@ -81,6 +81,14 @@ $flash = get_flash();
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
+                    <a 
+                        href="<?php echo SITE_URL; ?>" 
+                        target="_blank" 
+                        rel="noopener" 
+                        class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+                    >
+                        View Site
+                    </a>
                     <span class="text-sm text-gray-600"><?php echo h($_SESSION['admin_username']); ?></span>
                     <a href="logout.php" class="text-sm text-red-600 hover:text-red-700">Logout</a>
                 </div>
@@ -165,6 +173,12 @@ $flash = get_flash();
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 text-sm space-y-2">
+                                    <a 
+                                        href="edit_artwork.php?id=<?php echo $artwork['id']; ?>" 
+                                        class="block text-gray-700 hover:text-gray-900"
+                                    >
+                                        Edit details
+                                    </a>
                                     <a 
                                         href="?action=toggle_publish&id=<?php echo $artwork['id']; ?>" 
                                         class="block text-blue-600 hover:text-blue-800"

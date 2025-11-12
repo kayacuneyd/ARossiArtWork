@@ -234,7 +234,7 @@ $csrfToken = generate_csrf_token();
                     <div class="relative">
                         <?php if ($featuredArtwork): ?>
                             <div class="bg-white/10 backdrop-blur rounded-3xl p-4 shadow-2xl">
-                                <div class="rounded-2xl overflow-hidden aspect-[4/5] bg-slate-800">
+                                <div class="rounded-2xl overflow-hidden aspect-square bg-slate-800">
                                     <picture>
                                         <?php if (!empty($featuredArtwork['webp_filename'])): ?>
                                             <source srcset="<?php echo SITE_URL . '/uploads/webp/' . h($featuredArtwork['webp_filename']); ?>" type="image/webp">
@@ -261,7 +261,7 @@ $csrfToken = generate_csrf_token();
         </section>
 
         <!-- Artist Statement -->
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <section id="artist-statement" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <div class="grid lg:grid-cols-3 gap-12">
                 <div class="lg:col-span-2">
                     <p class="text-sm font-semibold text-blue-600 uppercase tracking-widest mb-3">Artist Statement</p>
@@ -293,7 +293,7 @@ $csrfToken = generate_csrf_token();
         </section>
 
         <!-- Services -->
-        <section class="bg-white/60 border-y border-gray-100 py-16">
+        <section id="services" class="bg-white/60 border-y border-gray-100 py-16">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-10">
                     <div>
@@ -316,7 +316,7 @@ $csrfToken = generate_csrf_token();
         </section>
 
         <!-- Commission Process -->
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <section id="commissions" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <div class="mb-10">
                 <p class="text-sm font-semibold text-blue-600 uppercase tracking-widest">Commission process</p>
                 <h2 class="text-3xl font-bold text-gray-900">From brief to installation</h2>
@@ -461,17 +461,53 @@ $csrfToken = generate_csrf_token();
     </main>
 
     <!-- Footer -->
-    <footer class="bg-slate-950 text-slate-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6 text-sm">
+    <footer class="bg-slate-950 text-slate-200 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 grid gap-10 md:grid-cols-3">
             <div>
-                <p class="font-semibold">© <?php echo date('Y'); ?> <?php echo h($artistName); ?>.</p>
-                <p class="text-slate-400">Built in Kornwestheim.</p>
-                <p class="text-slate-400">Developed by <a href="https://kayacuneyt.com" target="_blank" class="text-white underline-offset-4 hover:underline">Cüneyt Kaya</a></p>
+                <p class="text-sm uppercase tracking-[0.3em] text-slate-400">Signature</p>
+                <h3 class="text-3xl font-semibold text-white mt-3"><?php echo h($artistName); ?></h3>
+                <p class="text-slate-300 mt-4 leading-relaxed max-w-md">
+                    <?php echo h($artistTagline); ?>
+                </p>
             </div>
-            <div class="space-y-2 text-slate-300">
-                <p><?php echo h($artistLocation); ?></p>
-                <a href="mailto:<?php echo h($artistEmailPublic); ?>" class="hover:text-white">Email: <?php echo h($artistEmailPublic); ?></a>
-                <a href="https://api.whatsapp.com/send?phone=<?php echo urlencode($whatsappPhone); ?>" target="_blank" class="hover:text-white">WhatsApp: <?php echo h($whatsappPhone); ?></a>
+            <div>
+                <p class="text-sm font-semibold text-slate-400 uppercase tracking-widest">Navigate</p>
+                <ul class="mt-4 space-y-2 text-sm">
+                    <li><a href="#gallery" class="hover:text-white">Gallery</a></li>
+                    <li><a href="#services" class="hover:text-white">Services</a></li>
+                    <li><a href="#commissions" class="hover:text-white">Commission process</a></li>
+                    <li><a href="#artist-statement" class="hover:text-white">Artist statement</a></li>
+                </ul>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-slate-400 uppercase tracking-widest">Stay in touch</p>
+                <ul class="mt-4 space-y-2 text-sm">
+                    <li><?php echo h($artistLocation); ?></li>
+                    <li>
+                        <a href="mailto:<?php echo h($artistEmailPublic); ?>" class="hover:text-white">
+                            <?php echo h($artistEmailPublic); ?>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://api.whatsapp.com/send?phone=<?php echo urlencode($whatsappPhone); ?>" target="_blank" rel="noopener" class="hover:text-white">
+                            WhatsApp: <?php echo h($whatsappPhone); ?>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://instagram.com/<?php echo h($instagramHandleLink); ?>" target="_blank" rel="noopener" class="hover:text-white">
+                            <?php echo h($artistInstagram); ?>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="border-t border-white/10">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 text-xs text-slate-400">
+                <p>© <?php echo date('Y'); ?> <?php echo h($artistName); ?>. All rights reserved.</p>
+                <p>
+                    Built in Kornwestheim · Developed by 
+                    <a href="https://kayacuneyt.com" target="_blank" rel="noopener" class="text-white underline-offset-4 hover:underline">Cüneyt Kaya</a>
+                </p>
             </div>
         </div>
     </footer>

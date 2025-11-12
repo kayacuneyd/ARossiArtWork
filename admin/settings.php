@@ -101,6 +101,14 @@ $csrfToken = generate_csrf_token();
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
+                    <a 
+                        href="<?php echo SITE_URL; ?>" 
+                        target="_blank" 
+                        rel="noopener" 
+                        class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+                    >
+                        View Site
+                    </a>
                     <span class="text-sm text-gray-600"><?php echo h($_SESSION['admin_username']); ?></span>
                     <a href="logout.php" class="text-sm text-red-600 hover:text-red-700">Logout</a>
                 </div>

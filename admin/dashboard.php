@@ -64,7 +64,12 @@ $flash = get_flash();
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <a href="<?php echo SITE_URL; ?>" target="_blank" class="text-sm text-gray-600 hover:text-gray-900">
+                    <a 
+                        href="<?php echo SITE_URL; ?>" 
+                        target="_blank" 
+                        rel="noopener" 
+                        class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+                    >
                         View Site
                     </a>
                     <span class="text-sm text-gray-600">
@@ -136,13 +141,20 @@ $flash = get_flash();
                                         <?php echo h($artwork['year']); ?> • <?php echo h($artwork['technique']); ?>
                                     </div>
                                 </div>
-                                <div class="flex items-center space-x-2">
-                                    <?php if ($artwork['is_featured']): ?>
-                                        <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Featured</span>
+                                <div class="flex flex-col items-end space-y-2">
+                                    <?php if ($artwork['is_featured'] || !$artwork['is_published']): ?>
+                                        <div class="flex items-center space-x-2">
+                                            <?php if ($artwork['is_featured']): ?>
+                                                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Featured</span>
+                                            <?php endif; ?>
+                                            <?php if (!$artwork['is_published']): ?>
+                                                <span class="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">Draft</span>
+                                            <?php endif; ?>
+                                        </div>
                                     <?php endif; ?>
-                                    <?php if (!$artwork['is_published']): ?>
-                                        <span class="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">Draft</span>
-                                    <?php endif; ?>
+                                    <a href="edit_artwork.php?id=<?php echo $artwork['id']; ?>" class="text-xs font-medium text-blue-600 hover:text-blue-800">
+                                        Edit
+                                    </a>
                                 </div>
                             </div>
                         <?php endforeach; ?>

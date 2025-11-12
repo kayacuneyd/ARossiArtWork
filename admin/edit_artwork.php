@@ -1,6 +1,6 @@
 <?php
 /**
- * Admin Upload Artwork Page
+ * Edit Artwork Page
  * Built in Kornwestheim
  * Developed by Cüneyt Kaya — https://kayacuneyt.com
  */
@@ -12,74 +12,106 @@ require_once APP_ROOT . '/includes/imageprocessor.php';
 
 require_login();
 
+$artworkId = isset($_GET['id']) ? intval($_GET['id']) : 0;
+if ($artworkId <= 0) {
+    set_flash('error', 'Artwork ID missing.');
+    redirect(SITE_URL . '/admin/artworks.php');
+}
+
+$artwork = $db->fetchOne("SELECT * FROM artworks WHERE id = ?", [$artworkId]);
+if (!$artwork) {
+    set_flash('error', 'Artwork not found.');
+    redirect(SITE_URL . '/admin/artworks.php');
+}
+
 $error = '';
-$success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Verify CSRF token
     if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
         $error = 'Invalid security token';
-    } elseif (!isset($_FILES['image']) || $_FILES['image']['error'] === UPLOAD_ERR_NO_FILE) {
-        $error = 'Please select an image to upload';
     } else {
-        // Get form data
         $title = trim($_POST['title'] ?? '');
         $description = trim($_POST['description'] ?? '');
-        $year = !empty($_POST['year']) ? intval($_POST['year']) : null;
+        $year = isset($_POST['year']) && $_POST['year'] !== '' ? intval($_POST['year']) : null;
         $technique = trim($_POST['technique'] ?? '');
         $dimensions = trim($_POST['dimensions'] ?? '');
-        $price = !empty($_POST['price']) ? floatval($_POST['price']) : null;
+        $price = isset($_POST['price']) && $_POST['price'] !== '' ? floatval($_POST['price']) : null;
         $isFeatured = isset($_POST['is_featured']) ? 1 : 0;
         $isPublished = isset($_POST['is_published']) ? 1 : 0;
-        
-        // Validate required fields
-        if (empty($title)) {
+
+        if ($title === '') {
             $error = 'Title is required';
         } else {
+            $newImageData = null;
+            $processor = new ImageProcessor();
+            $db->beginTransaction();
+
             try {
-                // Process image
-                $processor = new ImageProcessor();
-                $result = $processor->processUpload($_FILES['image']);
-                
-                // Insert into database
-                $sql = "INSERT INTO artworks 
-                        (title, description, year, technique, dimensions, price, 
-                         filename, thumbnail, webp_filename, is_featured, is_published) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                
-                $db->insert($sql, [
+                if (isset($_FILES['image']) && $_FILES['image']['error'] !== UPLOAD_ERR_NO_FILE) {
+                    $newImageData = $processor->processUpload($_FILES['image']);
+                }
+
+                $params = [
                     $title,
                     $description,
                     $year,
                     $technique,
                     $dimensions,
                     $price,
-                    $result['filename'],
-                    $result['thumbnail'],
-                    $result['webp'],
                     $isFeatured,
                     $isPublished
-                ]);
-                
-                log_action('Upload Artwork', "Uploaded: $title");
-                set_flash('success', 'Artwork uploaded successfully!');
+                ];
+
+                $sql = "UPDATE artworks 
+                        SET title = ?, description = ?, year = ?, technique = ?, dimensions = ?, 
+                            price = ?, is_featured = ?, is_published = ?";
+
+                if ($newImageData) {
+                    $sql .= ", filename = ?, thumbnail = ?, webp_filename = ?";
+                    $params[] = $newImageData['filename'];
+                    $params[] = $newImageData['thumbnail'];
+                    $params[] = $newImageData['webp'];
+                }
+
+                $sql .= " WHERE id = ?";
+                $params[] = $artworkId;
+
+                $db->execute($sql, $params);
+                $db->commit();
+
+                if ($newImageData) {
+                    $processor->deleteArtwork($artwork['filename'], $artwork['webp_filename']);
+                }
+
+                log_action('Edit Artwork', "Updated: $title");
+                set_flash('success', 'Artwork updated successfully.');
                 redirect(SITE_URL . '/admin/artworks.php');
-                
+
             } catch (Exception $e) {
-                $error = 'Upload failed: ' . $e->getMessage();
+                $db->rollback();
+                if ($newImageData) {
+                    $processor->deleteArtwork($newImageData['filename'], $newImageData['webp']);
+                }
+                $error = 'Update failed: ' . $e->getMessage();
             }
         }
     }
 }
 
 $csrfToken = generate_csrf_token();
+$publishChecked = $_SERVER['REQUEST_METHOD'] === 'POST'
+    ? isset($_POST['is_published'])
+    : (bool) $artwork['is_published'];
+$featuredChecked = $_SERVER['REQUEST_METHOD'] === 'POST'
+    ? isset($_POST['is_featured'])
+    : (bool) $artwork['is_featured'];
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload Artwork - Admin Panel</title>
+    <title>Edit Artwork - Admin Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -124,7 +156,8 @@ $csrfToken = generate_csrf_token();
 
         <div class="bg-white rounded-lg shadow">
             <div class="px-6 py-4 border-b">
-                <h2 class="text-2xl font-bold">Upload New Artwork</h2>
+                <h2 class="text-2xl font-bold">Edit Artwork</h2>
+                <p class="text-sm text-gray-500 mt-1"><?php echo h($artwork['title']); ?></p>
             </div>
 
             <div class="p-6">
@@ -137,31 +170,48 @@ $csrfToken = generate_csrf_token();
                 <form method="POST" action="" enctype="multipart/form-data" class="space-y-6">
                     <input type="hidden" name="csrf_token" value="<?php echo $csrfToken; ?>">
 
-                    <!-- Image Upload -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Artwork Image *
-                        </label>
-                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition">
-                            <input 
-                                type="file" 
-                                name="image" 
-                                id="image"
-                                accept="image/jpeg,image/png,image/webp"
-                                required
-                                class="hidden"
-                                onchange="previewImage(this)"
-                            >
-                            <label for="image" class="cursor-pointer">
-                                <div id="preview" class="mb-4"></div>
-                                <div class="text-gray-600">
-                                    <svg class="mx-auto h-12 w-12 text-gray-400 mb-2" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                    </svg>
-                                    <p class="font-medium">Click to upload image</p>
-                                    <p class="text-sm text-gray-500 mt-1">JPG, PNG, WebP up to <?php echo format_bytes(MAX_UPLOAD_SIZE); ?></p>
-                                </div>
+                    <!-- Existing Image -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Current Artwork
                             </label>
+                            <div class="border rounded-xl overflow-hidden bg-gray-50">
+                                <img 
+                                    src="<?php echo SITE_URL . '/uploads/thumbnails/' . h($artwork['thumbnail']); ?>" 
+                                    alt="<?php echo h($artwork['title']); ?>"
+                                    class="w-full h-64 object-cover"
+                                >
+                            </div>
+                        </div>
+
+                        <!-- Image Upload -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Replace Image (optional)
+                            </label>
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition">
+                                <input 
+                                    type="file" 
+                                    name="image" 
+                                    id="image"
+                                    accept="image/jpeg,image/png,image/webp"
+                                    class="hidden"
+                                    onchange="previewImage(this)"
+                                >
+                                <label for="image" class="cursor-pointer">
+                                    <div id="preview" class="mb-4 text-sm text-gray-500">
+                                        Uploading a new file will overwrite the existing artwork.
+                                    </div>
+                                    <div class="text-gray-600">
+                                        <svg class="mx-auto h-12 w-12 text-gray-400 mb-2" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                        <p class="font-medium">Click to upload image</p>
+                                        <p class="text-sm text-gray-500 mt-1">JPG, PNG, WebP up to <?php echo format_bytes(MAX_UPLOAD_SIZE); ?></p>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
                     </div>
 
@@ -176,8 +226,7 @@ $csrfToken = generate_csrf_token();
                             required
                             maxlength="255"
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="e.g., Sunset Dreams"
-                            value="<?php echo h($_POST['title'] ?? ''); ?>"
+                            value="<?php echo h($_POST['title'] ?? $artwork['title']); ?>"
                         >
                     </div>
 
@@ -190,11 +239,10 @@ $csrfToken = generate_csrf_token();
                             name="description" 
                             rows="4"
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Tell the story behind this artwork..."
-                        ><?php echo h($_POST['description'] ?? ''); ?></textarea>
+                        ><?php echo h($_POST['description'] ?? $artwork['description']); ?></textarea>
                     </div>
 
-                    <!-- Year, Technique, Dimensions (Row) -->
+                    <!-- Year, Technique, Dimensions -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Year</label>
@@ -204,8 +252,7 @@ $csrfToken = generate_csrf_token();
                                 min="1900" 
                                 max="<?php echo date('Y'); ?>"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                placeholder="<?php echo date('Y'); ?>"
-                                value="<?php echo h($_POST['year'] ?? ''); ?>"
+                                value="<?php echo h($_POST['year'] ?? $artwork['year']); ?>"
                             >
                         </div>
                         <div>
@@ -214,8 +261,7 @@ $csrfToken = generate_csrf_token();
                                 type="text" 
                                 name="technique"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                placeholder="e.g., Oil on Canvas"
-                                value="<?php echo h($_POST['technique'] ?? ''); ?>"
+                                value="<?php echo h($_POST['technique'] ?? $artwork['technique']); ?>"
                             >
                         </div>
                         <div>
@@ -224,8 +270,7 @@ $csrfToken = generate_csrf_token();
                                 type="text" 
                                 name="dimensions"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                placeholder="e.g., 60x80 cm"
-                                value="<?php echo h($_POST['dimensions'] ?? ''); ?>"
+                                value="<?php echo h($_POST['dimensions'] ?? $artwork['dimensions']); ?>"
                             >
                         </div>
                     </div>
@@ -241,8 +286,7 @@ $csrfToken = generate_csrf_token();
                             step="0.01" 
                             min="0"
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                            placeholder="Optional"
-                            value="<?php echo h($_POST['price'] ?? ''); ?>"
+                            value="<?php echo h($_POST['price'] ?? $artwork['price']); ?>"
                         >
                     </div>
 
@@ -253,10 +297,10 @@ $csrfToken = generate_csrf_token();
                                 type="checkbox" 
                                 name="is_published" 
                                 value="1"
-                                checked
                                 class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                <?php echo $publishChecked ? 'checked' : ''; ?>
                             >
-                            <span class="ml-2 text-sm text-gray-700">Publish immediately</span>
+                            <span class="ml-2 text-sm text-gray-700">Published</span>
                         </label>
                         <label class="flex items-center">
                             <input 
@@ -264,8 +308,9 @@ $csrfToken = generate_csrf_token();
                                 name="is_featured" 
                                 value="1"
                                 class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                <?php echo $featuredChecked ? 'checked' : ''; ?>
                             >
-                            <span class="ml-2 text-sm text-gray-700">Mark as featured</span>
+                            <span class="ml-2 text-sm text-gray-700">Featured artwork</span>
                         </label>
                     </div>
 
@@ -281,7 +326,7 @@ $csrfToken = generate_csrf_token();
                             type="submit"
                             class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
                         >
-                            Upload Artwork
+                            Save Changes
                         </button>
                     </div>
                 </form>
@@ -298,6 +343,8 @@ $csrfToken = generate_csrf_token();
                     preview.innerHTML = '<img src="' + e.target.result + '" class="max-h-64 mx-auto rounded-lg shadow-md">';
                 }
                 reader.readAsDataURL(input.files[0]);
+            } else {
+                preview.innerHTML = 'Uploading a new file will overwrite the existing artwork.';
             }
         }
     </script>
