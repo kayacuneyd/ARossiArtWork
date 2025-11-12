@@ -236,7 +236,9 @@ $csrfToken = generate_csrf_token();
                             <div class="bg-white/10 backdrop-blur rounded-3xl p-4 shadow-2xl">
                                 <div class="rounded-2xl overflow-hidden aspect-[4/5] bg-slate-800">
                                     <picture>
-                                        <source srcset="<?php echo SITE_URL . '/uploads/webp/' . h($featuredArtwork['webp_filename']); ?>" type="image/webp">
+                                        <?php if (!empty($featuredArtwork['webp_filename'])): ?>
+                                            <source srcset="<?php echo SITE_URL . '/uploads/webp/' . h($featuredArtwork['webp_filename']); ?>" type="image/webp">
+                                        <?php endif; ?>
                                         <img src="<?php echo SITE_URL . '/uploads/artworks/' . h($featuredArtwork['filename']); ?>" alt="<?php echo h($featuredArtwork['title']); ?>" class="w-full h-full object-cover">
                                     </picture>
                                 </div>
@@ -400,7 +402,7 @@ $csrfToken = generate_csrf_token();
                             data-dimensions="<?php echo h($artwork['dimensions']); ?>"
                             data-price="<?php echo h($artwork['price']); ?>"
                             data-image="<?php echo SITE_URL . '/uploads/artworks/' . h($artwork['filename']); ?>"
-                            data-webp="<?php echo SITE_URL . '/uploads/webp/' . h($artwork['webp_filename']); ?>"
+                            data-webp="<?php echo !empty($artwork['webp_filename']) ? SITE_URL . '/uploads/webp/' . h($artwork['webp_filename']) : ''; ?>"
                             data-thumbnail="<?php echo SITE_URL . '/uploads/thumbnails/' . h($artwork['thumbnail']); ?>"
                         >
                             <div class="relative aspect-square overflow-hidden bg-gray-100">
@@ -408,7 +410,9 @@ $csrfToken = generate_csrf_token();
                                     <span class="absolute top-3 left-3 z-10 bg-white/90 text-gray-900 text-xs font-semibold px-3 py-1 rounded-full shadow">Featured</span>
                                 <?php endif; ?>
                                 <picture>
-                                    <source srcset="<?php echo SITE_URL . '/uploads/webp/' . h($artwork['webp_filename']); ?>" type="image/webp">
+                                    <?php if (!empty($artwork['webp_filename'])): ?>
+                                        <source srcset="<?php echo SITE_URL . '/uploads/webp/' . h($artwork['webp_filename']); ?>" type="image/webp">
+                                    <?php endif; ?>
                                     <img 
                                         src="<?php echo SITE_URL . '/uploads/thumbnails/' . h($artwork['thumbnail']); ?>" 
                                         alt="<?php echo h($artwork['title']); ?>"

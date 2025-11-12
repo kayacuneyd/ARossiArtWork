@@ -13,6 +13,7 @@ class ImageProcessor {
     private $thumbDir;
     private $webpDir;
     private $useImagick;
+    private $gdWebpSupported;
     
     public function __construct() {
         $this->maxWidth = MAX_IMAGE_WIDTH;
@@ -21,6 +22,7 @@ class ImageProcessor {
         $this->thumbDir = THUMB_DIR;
         $this->webpDir = WEBP_DIR;
         $this->useImagick = extension_loaded('imagick');
+        $this->gdWebpSupported = function_exists('imagewebp');
         
         // Ensure directories exist
         $this->ensureDirectories();
@@ -100,14 +102,23 @@ class ImageProcessor {
             $thumb->writeImage($thumbPath);
             $thumb->destroy();
             
-            // Create WebP version
-            $webp = clone $image;
-            $webpFilename = $this->changeExtension($filename, 'webp');
-            $webpPath = $this->webpDir . $webpFilename;
-            $webp->setImageFormat('webp');
-            $webp->setImageCompressionQuality(80);
-            $webp->writeImage($webpPath);
-            $webp->destroy();
+            // Create WebP version (skip if unsupported)
+            $webpFilename = null;
+            try {
+                $formats = method_exists('Imagick', 'queryFormats') ? Imagick::queryFormats('WEBP') : [];
+                if (!empty($formats)) {
+                    $webp = clone $image;
+                    $webpFilename = $this->changeExtension($filename, 'webp');
+                    $webpPath = $this->webpDir . $webpFilename;
+                    $webp->setImageFormat('webp');
+                    $webp->setImageCompressionQuality(80);
+                    $webp->writeImage($webpPath);
+                    $webp->destroy();
+                }
+            } catch (Exception $webpException) {
+                $webpFilename = null;
+                error_log('[ImageProcessor] Imagick WebP conversion skipped: ' . $webpException->getMessage());
+            }
             
             // Clean up
             $image->destroy();
@@ -184,10 +195,16 @@ class ImageProcessor {
             $thumbPath = $this->thumbDir . $filename;
             $this->saveImage($thumbImage, $thumbPath, $type);
             
-            // Create WebP version
-            $webpFilename = $this->changeExtension($filename, 'webp');
-            $webpPath = $this->webpDir . $webpFilename;
-            imagewebp($mainImage, $webpPath, 80);
+            // Create WebP version if supported
+            $webpFilename = null;
+            if ($this->gdWebpSupported) {
+                $webpFilename = $this->changeExtension($filename, 'webp');
+                $webpPath = $this->webpDir . $webpFilename;
+                if (!imagewebp($mainImage, $webpPath, 80)) {
+                    $webpFilename = null;
+                    error_log('[ImageProcessor] GD WebP conversion failed for ' . $filename);
+                }
+            }
             
             // Clean up
             imagedestroy($source);
@@ -230,6 +247,9 @@ class ImageProcessor {
                 imagepng($image, $path, 8);
                 break;
             case IMAGETYPE_WEBP:
+                if (!$this->gdWebpSupported) {
+                    throw new Exception('WebP uploads are not supported on this server. Please upload JPG or PNG instead.');
+                }
                 imagewebp($image, $path, 85);
                 break;
         }

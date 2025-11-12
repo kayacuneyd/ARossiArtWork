@@ -102,8 +102,8 @@ INSERT INTO `settings` (`setting_key`, `setting_value`, `setting_type`, `descrip
 -- --------------------------------------------------------
 
 -- Sample admin (password: admin123)
--- INSERT INTO `admins` (`username`, `password`, `email`) VALUES
--- ('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin@example.com');
+INSERT INTO `admins` (`username`, `password`, `email`) VALUES
+('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin@arossiartwork.com');
 
 -- Sample artwork (requires actual image files)
 -- INSERT INTO `artworks` (`title`, `description`, `year`, `technique`, `dimensions`, `price`, `filename`, `thumbnail`, `webp_filename`, `is_featured`, `is_published`) VALUES
