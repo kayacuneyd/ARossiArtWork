@@ -658,7 +658,7 @@ $csrfToken = generate_csrf_token();
     <div id="toast" class="hidden fixed top-6 right-6 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium"></div>
 
     <?php if ($showConfetti): ?>
-        <script defer src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" integrity="sha256-Emj5Zk90un0nLBKBPXn1HULICwhf66A1VpzwuNFuIB8=" crossorigin="anonymous"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
         <script>
             window.addEventListener('load', function() {
                 if (typeof confetti !== 'function') {
