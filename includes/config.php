@@ -15,7 +15,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 // Database configuration
-define('DB_HOST', 'localhost');
+define('DB_HOST', '127.0.0.1');
 define('DB_PORT', '3306')
 define('DB_NAME', 'u629681856_aTAla');
 define('DB_USER', 'u629681856_3hOmA');
@@ -57,10 +57,10 @@ define('ITEMS_PER_PAGE', 12);
 // Email configuration (PHPMailer - optional)
 define('SMTP_HOST', 'smtp.hostinger.com');
 define('SMTP_PORT', 587);
-define('SMTP_USERNAME', 'your@domain.com');
-define('SMTP_PASSWORD', 'your_password');
-define('SMTP_FROM_EMAIL', 'noreply@yourdomain.com');
-define('SMTP_FROM_NAME', 'Artist Portfolio');
+define('SMTP_USERNAME', 'artist@arossiartwork.com');
+define('SMTP_PASSWORD', 'Artist1234!');
+define('SMTP_FROM_EMAIL', 'noreply@arossiartwork.com');
+define('SMTP_FROM_NAME', 'ARossi Artwork');
 
 // Timezone
 date_default_timezone_set('Europe/London');
