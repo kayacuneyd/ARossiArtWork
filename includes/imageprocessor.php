@@ -72,8 +72,10 @@ class ImageProcessor {
             // Strip EXIF and metadata
             $image->stripImage();
             
-            // Auto-orient based on EXIF (before stripping)
-            $image->autoOrientImage();
+            // Auto-orient based on EXIF (older Imagick builds may miss this)
+            if (method_exists($image, 'autoOrientImage')) {
+                $image->autoOrientImage();
+            }
             
             // Get dimensions
             $width = $image->getImageWidth();
