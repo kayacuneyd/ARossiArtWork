@@ -57,6 +57,7 @@ CREATE TABLE `inquiries` (
   `name` VARCHAR(100) NOT NULL,
   `email` VARCHAR(100) NOT NULL,
   `phone` VARCHAR(20),
+  `artwork_title` VARCHAR(255) DEFAULT NULL,
   `message` TEXT NOT NULL,
   `preferred_size` VARCHAR(50),
   `preferred_color` VARCHAR(50),

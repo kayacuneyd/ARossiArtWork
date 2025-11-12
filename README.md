@@ -40,14 +40,27 @@ Upload all files to your Hostinger public_html directory via FTP/SFTP.
 -- Import schema.sql file
 ```
 
-### 3. Configure Database Connection
-Edit `includes/config.php`:
-```php
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'your_database_name');
-define('DB_USER', 'your_database_user');
-define('DB_PASS', 'your_database_password');
+### 3. Configure Environment Variables
+1. Duplicate `.env.example` and rename it to `.env`.
+2. Fill in your database, SMTP, and site details:
+
 ```
+APP_ENV=production
+SITE_URL=https://arossiartwork.com
+SITE_NAME="ARossi Artwork"
+
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=your_database_name
+DB_USER=your_database_user
+DB_PASS=strong_password
+
+SMTP_HOST=smtp.hostinger.com
+SMTP_USERNAME=artist@arossiartwork.com
+SMTP_PASSWORD=app_password
+```
+
+> The app reads everything from `.env` at runtime, so you no longer have to edit `includes/config.php` when deploying to Hostinger.
 
 ### 4. Set Folder Permissions
 ```bash

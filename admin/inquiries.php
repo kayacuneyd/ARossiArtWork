@@ -97,6 +97,12 @@ $flash = get_flash();
                             </div>
                         </div>
 
+                        <?php if ($inquiry['artwork_title']): ?>
+                            <div class="mb-4 text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded-lg px-4 py-2">
+                                Interested in: <span class="font-semibold"><?php echo h($inquiry['artwork_title']); ?></span>
+                            </div>
+                        <?php endif; ?>
+
                         <?php if ($inquiry['preferred_size'] || $inquiry['preferred_color']): ?>
                             <div class="mb-3 flex gap-4 text-sm">
                                 <?php if ($inquiry['preferred_size']): ?>

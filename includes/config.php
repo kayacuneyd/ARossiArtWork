@@ -10,29 +10,38 @@ if (!defined('APP_ROOT')) {
     define('APP_ROOT', dirname(__DIR__));
 }
 
+require_once APP_ROOT . '/includes/env.php';
+load_env(APP_ROOT . '/.env');
+
 // Error reporting (set to 0 in production)
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+$appEnv = env('APP_ENV', 'production');
+if ($appEnv === 'production') {
+    error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT & ~E_DEPRECATED);
+    ini_set('display_errors', 0);
+} else {
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+}
 
 // Database configuration
-define('DB_HOST', '127.0.0.1');
-define('DB_PORT', '3306')
-define('DB_NAME', 'u629681856_aTAla');
-define('DB_USER', 'u629681856_3hOmA');
-define('DB_PASS', 'Kayacuneyd1453!');
-define('DB_CHARSET', 'utf8mb4');
+define('DB_HOST', env('DB_HOST', 'localhost'));
+define('DB_PORT', env('DB_PORT', '3306'));
+define('DB_NAME', env('DB_NAME', 'u629681856_arossiartwork'));
+define('DB_USER', env('DB_USER', 'u629681856_arossiartwork'));
+define('DB_PASS', env('DB_PASS', 'Arossiartwork1234!'));
+define('DB_CHARSET', env('DB_CHARSET', 'utf8mb4'));
 
 // Site configuration
-define('SITE_URL', 'https://arossiartwork.com/');
-define('SITE_NAME', 'Artist Portfolio');
+define('SITE_URL', rtrim(env('SITE_URL', 'https://arossiartwork.com/'), '/'));
+define('SITE_NAME', env('SITE_NAME', 'Artist Portfolio'));
 
 // Upload configuration
 define('UPLOAD_DIR', APP_ROOT . '/uploads/artworks/');
 define('THUMB_DIR', APP_ROOT . '/uploads/thumbnails/');
 define('WEBP_DIR', APP_ROOT . '/uploads/webp/');
-define('MAX_UPLOAD_SIZE', 8 * 1024 * 1024); // 8MB in bytes
-define('MAX_IMAGE_WIDTH', 2048);
-define('THUMB_WIDTH', 600);
+define('MAX_UPLOAD_SIZE', (int) env('MAX_UPLOAD_SIZE', 8 * 1024 * 1024));
+define('MAX_IMAGE_WIDTH', (int) env('MAX_IMAGE_WIDTH', 2048));
+define('THUMB_WIDTH', (int) env('THUMB_WIDTH', 600));
 
 // Allowed image types
 define('ALLOWED_MIME_TYPES', [
@@ -44,23 +53,23 @@ define('ALLOWED_MIME_TYPES', [
 define('ALLOWED_EXTENSIONS', ['jpg', 'jpeg', 'png', 'webp']);
 
 // Session configuration
-define('SESSION_LIFETIME', 3600 * 24); // 24 hours
-define('SESSION_NAME', 'artist_portfolio_session');
+define('SESSION_LIFETIME', (int) env('SESSION_LIFETIME', 3600 * 24));
+define('SESSION_NAME', env('SESSION_NAME', 'artist_portfolio_session'));
 
 // Security
-define('CSRF_TOKEN_NAME', 'csrf_token');
-define('PASSWORD_MIN_LENGTH', 8);
+define('CSRF_TOKEN_NAME', env('CSRF_TOKEN_NAME', 'csrf_token'));
+define('PASSWORD_MIN_LENGTH', (int) env('PASSWORD_MIN_LENGTH', 8));
 
 // Pagination
 define('ITEMS_PER_PAGE', 12);
 
 // Email configuration (PHPMailer - optional)
-define('SMTP_HOST', 'smtp.hostinger.com');
-define('SMTP_PORT', 587);
-define('SMTP_USERNAME', 'artist@arossiartwork.com');
-define('SMTP_PASSWORD', 'Artist1234!');
-define('SMTP_FROM_EMAIL', 'noreply@arossiartwork.com');
-define('SMTP_FROM_NAME', 'ARossi Artwork');
+define('SMTP_HOST', env('SMTP_HOST', 'smtp.hostinger.com'));
+define('SMTP_PORT', (int) env('SMTP_PORT', 587));
+define('SMTP_USERNAME', env('SMTP_USERNAME', 'artist@arossiartwork.com'));
+define('SMTP_PASSWORD', env('SMTP_PASSWORD', 'Artist1234!'));
+define('SMTP_FROM_EMAIL', env('SMTP_FROM_EMAIL', 'noreply@arossiartwork.com'));
+define('SMTP_FROM_NAME', env('SMTP_FROM_NAME', 'ARossi Artwork'));
 
 // Timezone
 date_default_timezone_set('Europe/London');
@@ -68,7 +77,7 @@ date_default_timezone_set('Europe/London');
 // Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     ini_set('session.cookie_httponly', 1);
-    ini_set('session.cookie_secure', 1); // Set to 1 if using HTTPS
+    ini_set('session.cookie_secure', str_starts_with(SITE_URL, 'https') ? 1 : 0);
     ini_set('session.use_strict_mode', 1);
     session_name(SESSION_NAME);
     session_start();
@@ -198,6 +207,15 @@ function get_flash() {
 function generate_unique_filename($original_name) {
     $ext = strtolower(pathinfo($original_name, PATHINFO_EXTENSION));
     return uniqid('artwork_', true) . '_' . time() . '.' . $ext;
+}
+
+/**
+ * Lightweight slugify helper for filter attributes / URLs
+ */
+function slugify($string) {
+    $string = strtolower(trim($string));
+    $string = preg_replace('/[^a-z0-9]+/', '-', $string);
+    return trim($string, '-');
 }
 
 /**

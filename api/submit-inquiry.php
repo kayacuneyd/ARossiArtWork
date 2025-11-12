@@ -32,6 +32,7 @@ try {
     $message = trim($_POST['message'] ?? '');
     $preferredSize = trim($_POST['preferred_size'] ?? '');
     $preferredColor = trim($_POST['preferred_color'] ?? '');
+    $artworkTitle = trim($_POST['artwork_title'] ?? '');
     
     // Validation
     if (empty($name)) {
@@ -55,9 +56,13 @@ try {
         throw new Exception('Message is too long');
     }
     
+    if (strlen($artworkTitle) > 255) {
+        throw new Exception('Artwork title is too long');
+    }
+
     // Save to database
-    $sql = "INSERT INTO inquiries (name, email, phone, message, preferred_size, preferred_color) 
-            VALUES (?, ?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO inquiries (name, email, phone, message, preferred_size, preferred_color, artwork_title) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)";
     
     $inquiryId = $db->insert($sql, [
         $name,
@@ -65,7 +70,8 @@ try {
         $phone,
         $message,
         $preferredSize,
-        $preferredColor
+        $preferredColor,
+        $artworkTitle ?: null
     ]);
     
     if (!$inquiryId) {
@@ -82,6 +88,9 @@ try {
     $whatsappMessage = "🎨 New Artwork Inquiry from Website\n\n";
     $whatsappMessage .= "👤 Name: $name\n";
     $whatsappMessage .= "📧 Email: $email\n";
+    if (!empty($artworkTitle)) {
+        $whatsappMessage .= "🖼️ Artwork: $artworkTitle\n";
+    }
     
     if (!empty($phone)) {
         $whatsappMessage .= "📱 Phone: $phone\n";
@@ -108,6 +117,9 @@ try {
         $emailBody .= "Name: $name\n";
         $emailBody .= "Email: $email\n";
         $emailBody .= "Phone: $phone\n";
+        if (!empty($artworkTitle)) {
+            $emailBody .= "Artwork: $artworkTitle\n";
+        }
         $emailBody .= "Preferred Size: $preferredSize\n";
         $emailBody .= "Preferred Color: $preferredColor\n";
         $emailBody .= "\nMessage:\n$message\n";
