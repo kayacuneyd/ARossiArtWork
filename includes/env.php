@@ -3,6 +3,32 @@
  * Simple .env loader and helper
  */
 
+if (!function_exists('str_starts_with')) {
+    function str_starts_with($haystack, $needle) {
+        $needle = (string) $needle;
+        if ($needle === '') {
+            return true;
+        }
+        return strncmp($haystack, $needle, strlen($needle)) === 0;
+    }
+}
+
+if (!function_exists('str_ends_with')) {
+    function str_ends_with($haystack, $needle) {
+        $needle = (string) $needle;
+        if ($needle === '') {
+            return true;
+        }
+        return substr($haystack, -strlen($needle)) === $needle;
+    }
+}
+
+if (!function_exists('str_contains')) {
+    function str_contains($haystack, $needle) {
+        return $needle === '' || strpos($haystack, $needle) !== false;
+    }
+}
+
 if (!function_exists('load_env')) {
     function load_env(string $path): void {
         if (!file_exists($path)) {
