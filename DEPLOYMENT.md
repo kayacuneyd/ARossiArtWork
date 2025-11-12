@@ -1,173 +1,349 @@
-# Hostinger Deployment Guide
+# 🚀 Hostinger Deployment Guide
 
-This guide explains how to deploy the ARossi ArtWork portfolio to your Hostinger account via FTP.
+**Artist Portfolio - Complete Deployment Instructions**
 
-## Initial Server Setup (One-time steps)
-
-Before the automated FTP deployment will work, you need to set up your Hostinger server:
-
-### 1. Set Document Root
-In Hostinger's hPanel:
-- Go to your domain/subdomain settings
-- Set the document root to `public_html/public` (or wherever you're deploying)
-- This ensures the `public/` directory is served as the web root
-
-### 2. Configure PHP Version
-- Go to hPanel → Advanced → PHP Configuration
-- Select PHP version 8.1 or higher
-- Click "Apply"
-
-### 3. Configure PHP Settings
-In hPanel → PHP Configuration → Options, set:
-```
-upload_max_filesize = 16M
-post_max_size = 16M
-memory_limit = 256M
-max_execution_time = 120
-```
-
-### 4. Create Required Directories
-Via SSH or File Manager, create these directories with write permissions:
-```bash
-mkdir -p public_html/storage/uploads
-mkdir -p public_html/storage/thumbs
-mkdir -p public_html/storage/webp
-chmod -R 775 public_html/storage
-chmod -R 775 public_html/public/uploads
-```
-
-### 5. Create .env File on Server
-The `.env` file is not deployed via FTP for security. Create it manually on the server:
-
-1. In File Manager, create `public_html/.env`
-2. Copy contents from `.env.example`
-3. Update with production values:
-```env
-APP_ENV=production
-APP_DEBUG=false
-APP_URL=https://arossiartwork.com
-
-DB_CONNECTION=mysql
-DB_HOST=localhost
-DB_DATABASE=your_database_name
-DB_USERNAME=your_database_user
-DB_PASSWORD=your_database_password
-
-MAIL_HOST=smtp.hostinger.com
-MAIL_PORT=587
-MAIL_USERNAME=your@email.com
-MAIL_PASSWORD=your_email_password
-MAIL_ENCRYPTION=tls
-MAIL_FROM_ADDRESS=your@email.com
-MAIL_FROM_NAME="ARossi Artwork"
-```
-
-### 6. Set Up Database
-1. Create MySQL database via hPanel
-2. Import the schema:
-   - Go to phpMyAdmin
-   - Select your database
-   - Import `database/schema.sql`
-3. Optionally import sample data from `database/sample_data.sql`
-
-### 7. Set Up GitHub Secrets
-In your GitHub repository settings (Settings → Secrets and variables → Actions), add:
-- `FTP_USERNAME`: Your Hostinger FTP username
-- `FTP_PASSWORD`: Your Hostinger FTP password
-
-## How the Automated Deployment Works
-
-Once the initial setup is complete, the deployment workflow automatically:
-
-1. **Builds the project**: Compiles Tailwind CSS and installs PHP dependencies
-2. **Deploys via FTP**: Syncs only necessary files to your server
-3. **Excludes unnecessary files**: Development files, source files, and config files are not uploaded
-
-The workflow runs automatically when you push to the `main` branch.
-
-## What Gets Deployed
-
-✅ Deployed to server:
-- `/public/` - Web root with index.php and assets
-- `/src/` - PHP application code
-- `/config/` - Application configuration
-- `/vendor/` - PHP dependencies (Composer packages)
-- `/storage/` - Upload directories (empty structure)
-
-❌ NOT deployed:
-- `.github/` - GitHub workflows
-- `node_modules/` - Node dependencies
-- `resources/` - Tailwind source files
-- `database/` - Schema files (should be imported manually)
-- `.env` - Environment file (must be created on server)
-- Development files (README, composer.json, etc.)
-
-## Troubleshooting
-
-### Deployment fails with FTP errors
-- Verify FTP credentials in GitHub Secrets
-- Check that the FTP server address is correct: `ftp.arossiartwork.com`
-- Ensure `server-dir` matches your actual path (default is `/public_html/`)
-
-### Site shows blank page or 500 error
-- Check `.env` file exists and has correct values
-- Verify database connection settings
-- Check PHP version is 8.1+
-- Review error logs in hPanel
-
-### CSS not loading
-- Verify `public/assets/css/tailwind.css` exists
-- Check file permissions (should be 644)
-- Clear browser cache
-
-### Images not uploading
-- Check storage directories exist and are writable (775)
-- Verify PHP upload limits in hPanel
-- Check `.env` has correct MAX_UPLOAD_MB value
-
-### Database connection errors
-- Verify DB credentials in `.env`
-- Check database exists in hPanel → Databases
-- Ensure DB user has proper permissions
-
-## Manual Deployment (If needed)
-
-If GitHub Actions deployment isn't working, you can deploy manually:
-
-1. **Build locally**:
-   ```bash
-   npm install
-   npm run build:css
-   composer install --no-dev --optimize-autoloader
-   ```
-
-2. **Upload via FTP** (exclude these):
-   - `.git/`, `.github/`
-   - `node_modules/`
-   - `resources/`, `tailwind.config.js`, `package*.json`
-   - `database/`, `README.md`, `composer.json`, `composer.lock`
-   - `.env` (create separately on server)
-
-3. **Complete server setup** as described above
-
-## Post-Deployment Checklist
-
-After deployment, verify:
-- [ ] Site loads at your domain
-- [ ] Gallery displays correctly
-- [ ] Admin login works at `/admin`
-- [ ] Can upload artwork through admin
-- [ ] WhatsApp inquiry redirects work
-- [ ] Email notifications are sent
-- [ ] Mobile responsive layout works
-
-## Support
-
-For issues:
-1. Check GitHub Actions logs for deployment errors
-2. Review Hostinger error logs in hPanel
-3. Verify all initial setup steps were completed
-4. Check `.env` configuration matches your server
+Built in Kornwestheim | Developed by Cüneyt Kaya — https://kayacuneyt.com
 
 ---
-Last updated: 2025-11-11
+
+## 📋 Pre-Deployment Checklist
+
+- [ ] Hostinger hosting account active
+- [ ] Domain configured (optional)
+- [ ] FTP/SFTP credentials ready
+- [ ] Database access via cPanel
+
+---
+
+## 🔧 Step 1: Upload Files
+
+### Via FileZilla (Recommended)
+1. **Download FileZilla:** https://filezilla-project.org/
+2. **Connect to Hostinger:**
+   - Host: `ftp.yourdomain.com`
+   - Username: Your Hostinger FTP username
+   - Password: Your FTP password
+   - Port: 21 (FTP) or 22 (SFTP)
+
+3. **Upload all files to:**
+   ```
+   /public_html/
+   ```
+   Or if using subdomain:
+   ```
+   /public_html/subdomain_name/
+   ```
+
+### Via cPanel File Manager
+1. Login to Hostinger cPanel
+2. Go to **File Manager**
+3. Navigate to `public_html`
+4. Click **Upload**
+5. Upload the ZIP file
+6. Extract the ZIP file
+7. Move all files from extracted folder to `public_html`
+
+---
+
+## 🗄️ Step 2: Create Database
+
+1. **Login to Hostinger cPanel**
+2. **Go to "MySQL Databases"**
+3. **Create New Database:**
+   - Database name: `u123456789_portfolio` (example)
+   - Click "Create"
+
+4. **Create Database User:**
+   - Username: `u123456789_admin` (example)
+   - Password: Generate strong password
+   - Click "Create User"
+
+5. **Add User to Database:**
+   - Select user and database
+   - Grant ALL PRIVILEGES
+   - Click "Add"
+
+6. **Import Schema:**
+   - Go to **phpMyAdmin**
+   - Select your database
+   - Click **Import** tab
+   - Choose `schema.sql`
+   - Click **Go**
+
+---
+
+## ⚙️ Step 3: Configure Database Connection
+
+1. **Edit `includes/config.php`:**
+   ```php
+   define('DB_HOST', 'localhost');
+   define('DB_NAME', 'u123456789_portfolio');
+   define('DB_USER', 'u123456789_admin');
+   define('DB_PASS', 'your_secure_password');
+   ```
+
+2. **Update Site URL:**
+   ```php
+   define('SITE_URL', 'https://yourdomain.com');
+   // Or if in subdirectory:
+   define('SITE_URL', 'https://yourdomain.com/portfolio');
+   ```
+
+3. **Save and upload the file again**
+
+---
+
+## 🔐 Step 4: Set Folder Permissions
+
+### Via cPanel File Manager
+Right-click each folder → Change Permissions:
+
+```
+/uploads/           → 755
+/uploads/artworks/  → 755
+/uploads/thumbnails/→ 755
+/uploads/webp/      → 755
+/includes/          → 755
+All .php files      → 644
+.htaccess          → 644
+```
+
+### Via SSH (if available)
+```bash
+chmod 755 uploads/
+chmod 755 uploads/artworks/
+chmod 755 uploads/thumbnails/
+chmod 755 uploads/webp/
+chmod 644 *.php
+chmod 644 .htaccess
+```
+
+---
+
+## 🐘 Step 5: PHP Configuration
+
+### Check PHP Version
+1. Go to cPanel → **Select PHP Version**
+2. Set to **PHP 8.1** or higher
+3. Enable extensions:
+   - ✅ mysqli
+   - ✅ gd (or imagick)
+   - ✅ mbstring
+   - ✅ curl
+
+### Create `.user.ini` in public_html
+```ini
+upload_max_filesize = 10M
+post_max_size = 12M
+memory_limit = 128M
+max_execution_time = 60
+```
+
+---
+
+## 👤 Step 6: Create Admin Account
+
+1. **Visit:** `https://yourdomain.com/admin/setup.php`
+2. **Fill in the form:**
+   - Username: admin (or your choice)
+   - Email: your@email.com
+   - Password: Strong password (min 8 chars)
+3. **Click "Create Admin Account"**
+4. **IMPORTANT:** Delete `/admin/setup.php` immediately!
+
+### Delete setup.php via cPanel
+1. Go to File Manager
+2. Navigate to `/public_html/admin/`
+3. Select `setup.php`
+4. Click "Delete"
+
+---
+
+## ✅ Step 7: Test Everything
+
+### Test Admin Login
+1. Go to `https://yourdomain.com/admin/login.php`
+2. Login with your credentials
+3. Should redirect to dashboard
+
+### Test Image Upload
+1. Go to Admin → Upload Artwork
+2. Upload a test image
+3. Fill in title and metadata
+4. Click "Upload Artwork"
+5. Check if image appears on homepage
+
+### Test WhatsApp Form
+1. Go to homepage
+2. Click "Request Artwork"
+3. Fill in the form
+4. Click "Send via WhatsApp"
+5. Should open WhatsApp with prefilled message
+6. Check Admin → Inquiries to see if it was saved
+
+### Test Gallery
+1. Visit homepage: `https://yourdomain.com`
+2. Images should load with lazy loading
+3. WebP format should work on modern browsers
+4. Responsive design should work on mobile
+
+---
+
+## 🔧 Step 8: Final Configuration
+
+### Update Settings
+Go to Admin → Settings and configure:
+
+1. **WhatsApp Phone Number:**
+   - Format: `+447123456789` (E.164)
+   - UK example: `+447123456789`
+   - Turkey example: `+905321234567`
+
+2. **Artist Email:**
+   - For inquiry notifications
+   - Use your actual email
+
+3. **Site Title & Description:**
+   - Update with artist name
+   - Add proper description for SEO
+
+4. **Enable/Disable Features:**
+   - ✅ Show prices
+   - ✅ Enable inquiry form
+
+---
+
+## 🛡️ Security Checklist
+
+- [x] `setup.php` deleted
+- [x] Strong admin password set
+- [x] Database credentials in `config.php` updated
+- [x] Folder permissions set correctly (755/644)
+- [x] `.htaccess` file uploaded
+- [x] PHP version set to 8.1+
+- [x] Error reporting disabled in production
+
+### Disable Error Display (Production)
+In `includes/config.php`, change:
+```php
+error_reporting(0);
+ini_set('display_errors', 0);
+```
+
+---
+
+## 🌐 SSL Certificate (HTTPS)
+
+1. Go to Hostinger cPanel
+2. Navigate to **SSL/TLS**
+3. Click **Install SSL Certificate**
+4. Choose **Let's Encrypt (Free)**
+5. Select your domain
+6. Click **Install**
+
+Wait 5-10 minutes for activation.
+
+### Force HTTPS
+Uncomment in `.htaccess`:
+```apache
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+```
+
+---
+
+## 📧 Email Configuration (Optional)
+
+If you want email notifications for inquiries:
+
+1. Create email in cPanel: `noreply@yourdomain.com`
+2. Update in `includes/config.php`:
+   ```php
+   define('SMTP_HOST', 'mail.yourdomain.com');
+   define('SMTP_PORT', 587);
+   define('SMTP_USERNAME', 'noreply@yourdomain.com');
+   define('SMTP_PASSWORD', 'email_password');
+   ```
+
+---
+
+## 🐛 Troubleshooting
+
+### Database Connection Error
+**Problem:** Can't connect to database
+**Solution:**
+- Check credentials in `includes/config.php`
+- Verify database exists in cPanel
+- Ensure user has ALL PRIVILEGES
+
+### Images Not Uploading
+**Problem:** Upload fails
+**Solution:**
+- Check folder permissions (755)
+- Verify `upload_max_filesize` in `.user.ini`
+- Check if GD or Imagick is enabled
+
+### WhatsApp Redirect Not Working
+**Problem:** Form submits but no WhatsApp
+**Solution:**
+- Check WhatsApp phone format: `+447123456789`
+- Verify `api/submit-inquiry.php` is accessible
+- Check browser console for errors
+
+### 500 Internal Server Error
+**Problem:** White screen or 500 error
+**Solution:**
+- Check `.htaccess` syntax
+- Verify PHP version is 8.1+
+- Check error logs in cPanel
+
+### Images Show Broken Link
+**Problem:** Images don't display
+**Solution:**
+- Verify `SITE_URL` in config.php is correct
+- Check folder permissions
+- Ensure images are in correct directories
+
+---
+
+## 📊 Performance Optimization
+
+### Enable Caching
+Add to `.htaccess`:
+```apache
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+</IfModule>
+```
+
+### Enable Gzip Compression
+Already in `.htaccess` - just verify it's working
+
+---
+
+## 🎉 You're Done!
+
+Your artist portfolio is now live! 
+
+**Next Steps:**
+1. Upload actual artworks
+2. Customize site title and description
+3. Test on mobile devices
+4. Share with the world! 🎨
+
+---
+
+## 📞 Support
+
+**Built in Kornwestheim**
+**Developed by Cüneyt Kaya**
+Website: https://kayacuneyt.com
+
+For technical support or custom development, contact via website.
+
+---
+
+**Last Updated:** November 2024

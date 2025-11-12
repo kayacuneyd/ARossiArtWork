@@ -1,49 +1,20 @@
-name: 🚀 Deploy to Hostinger via FTP
+name: 🚀 Deploy Artist Portfolio to Hostinger
 
 on:
   push:
     branches:
       - master
+  workflow_dispatch: # Manuel trigger için
 
 jobs:
-  ftp-deploy:
+  deploy:
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Checkout code
+      - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-
-      - name: Install Node dependencies
-        run: npm ci
-
-      - name: Build Tailwind CSS
-        run: npm run build:css
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.1'
-          coverage: none
-          tools: composer:v2
-          cache: composer
-
-      - name: Cache Composer vendor directory
-        uses: actions/cache@v4
-        with:
-          path: vendor
-          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
-
-      - name: Install Composer dependencies
-        run: composer install --no-dev --optimize-autoloader --no-interaction
-
-      - name: Sync files to shared hosting
+      - name: 🚀 Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ftp.arossiartwork.com
@@ -53,18 +24,26 @@ jobs:
           exclude: |
             **/.git*
             **/.git*/**
+            **/.github/**
             .github/
-            node_modules/
-            resources/
-            tailwind.config.js
-            package.json
-            package-lock.json
-            README.md
-            sample.jpg
-            storage/database.sqlite
-            composer.json
-            composer.lock
-            .env.example
+            .gitignore
             .DS_Store
             .idea/
             .vscode/
+            README.md
+            DEPLOYMENT.md
+            QUICKSTART.md
+            schema.sql
+            admin/setup.php
+            .env.example
+            composer.json
+            composer.lock
+            package.json
+            package-lock.json
+            node_modules/
+            
+      - name: ✅ Deployment Complete
+        run: |
+          echo "🎉 Deployment successful!"
+          echo "🌐 Site: https://arossiartwork.com"
+          echo "🔐 Admin: https://arossiartwork.com/admin/login.php"

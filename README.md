@@ -1,132 +1,171 @@
-# Alexandre Mike Rossi Artworks Portfoliooo
+# Artist Portfolio - PHP + Tailwind
 
-A minimalist PHP + Tailwind portfolio for Bournemouth-based painter Alexandre Mike Rossi. The site provides a responsive gallery, WhatsApp-powered inquiries, and an admin dashboard to manage artworks, media processing, and incoming leads.
+**A minimalist portfolio website for artists with WhatsApp integration**
 
-## Features
-- **Responsive gallery** with lazy-loaded images, modal detail view, and dedicated artwork pages.
-- **WhatsApp inquiry flow** saves submissions to MySQL, redirects with a prefilled message, and emails the artist.
-- **Admin dashboard** with authentication, media uploads (EXIF strip, 2048px max, 600px thumbnail, WebP copy), publish/feature toggles, reordering, and settings.
-- **Settings panel** to manage WhatsApp number, artist email, and upload limits.
-- **Image processing fallback** automatically chooses Imagick or GD via Intervention Image.
-- Built-in CSRF protection, prepared statements (PDO), and session-based auth.
-
-## Tech Stack
-- PHP 8.1+
-- MySQL 8 (5.7 compatible)
-- Tailwind CSS (CLI build)
-- Composer + PHPMailer + Intervention Image + Respect/Validation
-
-## Project Structure
-```
-.
-├── public/             # Document root (serve this directory)
-├── src/                # PHP source (controllers, services, views)
-├── storage/            # Private originals + derivatives (mirrored in public/uploads)
-├── database/schema.sql # MySQL schema and default settings seed
-├── resources/css/      # Tailwind input styles
-├── package.json        # Tailwind CLI scripts
-├── composer.json       # PHP dependencies & autoloading
-└── README.md
-```
-
-## Getting Started (Local)
-1. **Clone & install dependencies**
-   ```bash
-   composer install
-   npm install
-   ```
-2. **Compile Tailwind**
-   ```bash
-   npm run dev:css      # watch mode
-   npm run build:css    # production/minified
-   ```
-   The built CSS is output to `public/assets/css/tailwind.css`.
-3. **Environment setup**
-   - Copy `.env.example` → `.env` and update credentials.
-   - Required values for MySQL: `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`, `APP_URL`.
-   - Local shortcut: set `DB_CONNECTION=sqlite` (and optionally `DB_DATABASE=storage/database.sqlite`) to boot with a self-contained SQLite file that seeds sample artworks + settings automatically.
-   - Optional email SMTP: `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_ENCRYPTION` (`tls` or `ssl`).
-4. **Database**
-   - Create the database: `CREATE DATABASE arotsi_portfolio CHARACTER SET utf8mb4;`
-   - Import schema: `mysql -u user -p arotsi_portfolio < database/schema.sql`
-   - Schema includes tables: `admins`, `artworks`, `inquiries`, `settings` (with default artist email, WhatsApp, upload MB).
-   - Optional placeholders: `mysql -u user -p arotsi_portfolio < database/sample_data.sql` seeds three sample artworks pointing to color-block images in `public/uploads/sample-0*.png`.
-5. **Default admin credentials**
-   - Username: `admin`
-   - Password: `ChangeMe123!`
-   - First login is enforced via `Installer::ensureDefaultAdmin()`; change the password immediately via Settings (coming soon) or database.
-6. **Serve locally**
-   ```bash
-   php -S localhost:8080 -t public
-   ```
-   Visit http://localhost:8080 and http://localhost:8080/admin
-
-## Image Handling
-- Uploads limited by `MAX_UPLOAD_MB` (env or settings). Default 8MB.
-- Accepted MIME types: JPG, PNG, WebP (PNG/WebP re-encoded without EXIF).
-- Originals resized to max width 2048px, thumbnail 600px, WebP copy when supported.
-- Stored twice: private copy under `storage/` and served copy under `public/uploads/` (make sure these directories are writable).
-
-## WhatsApp Flow
-- Contact modal and `/contact` page post to `/inquiry`.
-- Inquiry saved to DB (`inquiries` table) with WhatsApp-ready message.
-- Redirects to `https://api.whatsapp.com/send?phone=...&text=...` using number stored in settings.
-- Optional email notification using PHPMailer (skipped silently if SMTP unavailable).
-
-## Deployment
-
-### Automated Deployment (Recommended)
-This repository includes automated FTP deployment via GitHub Actions. When you push to the `main` branch:
-- Code is automatically built (Tailwind CSS + Composer dependencies)
-- Files are deployed to your Hostinger account via FTP
-- Only production files are uploaded (development files are excluded)
-
-**See [DEPLOYMENT.md](DEPLOYMENT.md) for complete setup instructions** and [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for common issues.
-
-### Hostinger Initial Setup (Required Before First Deploy)
-1. **Document root**: point the domain/subdomain to the `public/` directory (e.g. move files so `public` → `public_html`).
-2. **PHP version**: set to 8.1+ via hPanel → Advanced → PHP Configuration.
-3. **php.ini overrides** (hPanel > PHP Configuration > Options):
-   - `upload_max_filesize = 16M`
-   - `post_max_size = 16M`
-   - `memory_limit = 256M`
-   - `max_execution_time = 120`
-4. **Folder permissions** (via SSH or File Manager):
-   ```bash
-   chmod -R 775 storage public/uploads
-   chmod -R 775 storage/uploads storage/thumbs storage/webp
-   ```
-5. **Composer on Hostinger**: run `composer install` from the project root (SSH). If Composer unavailable, upload the `vendor/` directory from local.
-6. **Tailwind build**: run `npx tailwindcss -i ./resources/css/input.css -o ./public/assets/css/tailwind.css --minify`. If Node is unavailable, compile locally and upload the generated CSS.
-7. **Environment**: create `.env` (not tracked) with production credentials. Ensure `APP_URL=https://yourdomain.com`.
-8. **Cron / background**: not required, but consider setting up periodic DB backups.
-
-## Testing Checklist
-Manual smoke tests (recommended before and after deploy):
-1. Upload an artwork (JPG/PNG ≤ 8MB). Confirm thumbnail, WebP copy, featured/published toggles, and ordering updates.
-2. View gallery on desktop and mobile widths; verify lazy loading and modal detail data.
-3. Submit WhatsApp inquiry:
-   - Check row inserted into `inquiries` table.
-   - Ensure browser opens WhatsApp with prefilled message.
-   - Verify email delivered (if SMTP configured).
-4. Update settings (WhatsApp number/email/upload size) and confirm they persist in dashboard & `.env` overrides the defaults.
-5. Logout/login flow and CSRF protection (resubmit forms with expired token to confirm rejection).
-
-## Screenshots / Video Guidance
-- Record an upload & inquiry walkthrough (QuickTime, Loom, or similar).
-- Capture: login → upload artwork → view gallery modal → submit inquiry → WhatsApp redirect.
-- Store assets in `/docs/` (not committed yet) for the final deliverable.
-
-## Useful Scripts
-- `composer install` — install PHP dependencies.
-- `composer dump-autoload` — rebuild classmap after adding classes.
-- `npm run dev:css` / `npm run build:css` — Tailwind.
-
-## Future Enhancements
-- Password change UI & multi-admin management.
-- Drag-and-drop ordering (current UI uses numeric fields).
-- Multi-language support.
-- Audit logging for uploads & settings changes.
+Built in Kornwestheim | Developed by Cüneyt Kaya — https://kayacuneyt.com
 
 ---
-**Support**: Update `README.md` and `.env` after deploying. Remember to replace placeholder text & imagery with final assets supplied by the artist.
+
+## 🚀 Features
+
+- ✅ Responsive gallery with lazy loading
+- ✅ Admin dashboard with image management
+- ✅ WhatsApp inquiry form integration
+- ✅ Image processing (resize, thumbnails, WebP)
+- ✅ EXIF stripping for privacy
+- ✅ Secure authentication & CSRF protection
+- ✅ Settings panel for configuration
+- ✅ Hostinger-optimized
+
+---
+
+## 📋 Requirements
+
+- PHP 8.0+
+- MySQL 5.7+ / MariaDB 10.3+
+- GD or Imagick extension
+- Apache with mod_rewrite
+
+---
+
+## 🔧 Installation
+
+### 1. Upload Files
+Upload all files to your Hostinger public_html directory via FTP/SFTP.
+
+### 2. Create Database
+```sql
+-- In Hostinger cPanel > MySQL Databases
+-- Create a new database and user
+-- Import schema.sql file
+```
+
+### 3. Configure Database Connection
+Edit `includes/config.php`:
+```php
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'your_database_name');
+define('DB_USER', 'your_database_user');
+define('DB_PASS', 'your_database_password');
+```
+
+### 4. Set Folder Permissions
+```bash
+chmod 755 uploads/
+chmod 755 uploads/artworks/
+chmod 755 uploads/thumbnails/
+chmod 755 uploads/webp/
+chmod 644 *.php
+```
+
+### 5. Check PHP Settings
+In Hostinger, edit `php.ini` or `.user.ini`:
+```ini
+upload_max_filesize = 10M
+post_max_size = 12M
+memory_limit = 128M
+max_execution_time = 60
+```
+
+### 6. Create Admin Account
+Visit `/admin/setup.php` (one-time setup)
+- Username: admin
+- Password: (set your password)
+- **Delete setup.php after first run!**
+
+---
+
+## 🧪 Testing
+
+### Test Admin Login
+1. Go to `/admin/login.php`
+2. Login with credentials
+3. Upload a test image
+4. Check gallery at `/index.php`
+
+### Test WhatsApp Form
+1. Go to `/index.php`
+2. Click "Request Artwork"
+3. Fill form and submit
+4. Should redirect to WhatsApp with prefilled message
+5. Check admin dashboard for saved inquiry
+
+### Test Image Processing
+1. Upload images > 2048px width
+2. Check if resized properly
+3. Verify thumbnail generation (600px)
+4. Verify WebP conversion
+5. Check EXIF data stripped
+
+---
+
+## 📱 Hostinger-Specific Notes
+
+### File Manager
+- Use cPanel File Manager to upload files
+- Set permissions via right-click > Change Permissions
+
+### Database
+- Use phpMyAdmin to import SQL
+- Database name format: `u123456789_portfolio`
+
+### PHP Version
+- Set PHP 8.1+ in cPanel > Select PHP Version
+- Enable extensions: mysqli, gd, mbstring
+
+### .htaccess
+Already configured for:
+- Clean URLs
+- Upload folder protection
+- Admin area security
+
+### Email (PHPMailer)
+- Use Hostinger SMTP settings
+- Host: smtp.hostinger.com
+- Port: 587
+- Username: your@domain.com
+
+---
+
+## 🎨 Customization
+
+### Change Colors
+Edit `assets/css/style.css` (Tailwind classes)
+
+### Change Fonts
+Update Google Fonts in header:
+- Playfair Display (headlines)
+- Inter (body text)
+
+### WhatsApp Number
+Admin > Settings > WhatsApp Phone (E.164 format: +447123456789)
+
+### Upload Limits
+Admin > Settings > Max Upload Size (MB)
+
+---
+
+## 🔒 Security Features
+
+✅ CSRF token protection
+✅ Prepared statements (SQL injection prevention)
+✅ Password hashing (bcrypt)
+✅ File upload validation (MIME type + size)
+✅ EXIF stripping
+✅ Input sanitization
+✅ Session security (httponly, secure flags)
+✅ Admin area protection
+
+---
+
+## 📞 Support
+
+Built by **Cüneyt Kaya**
+- Website: https://kayacuneyt.com
+- Location: Built in Kornwestheim
+
+---
+
+## 📄 License
+
+Proprietary - All rights reserved
