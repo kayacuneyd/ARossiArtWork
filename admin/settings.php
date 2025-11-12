@@ -25,7 +25,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verify_csrf_token($_POST['csrf_toke
             'site_title' => trim($_POST['site_title'] ?? 'Artist Portfolio'),
             'site_description' => trim($_POST['site_description'] ?? ''),
             'enable_prices' => isset($_POST['enable_prices']) ? '1' : '0',
-            'enable_inquiries' => isset($_POST['enable_inquiries']) ? '1' : '0'
+            'enable_inquiries' => isset($_POST['enable_inquiries']) ? '1' : '0',
+            'enable_confetti' => isset($_POST['enable_confetti']) ? '1' : '0',
+            'confetti_expires_at' => trim($_POST['confetti_expires_at'] ?? '')
         ];
         
         // Validate WhatsApp phone (E.164 format)
@@ -45,6 +47,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verify_csrf_token($_POST['csrf_toke
         // Validate upload size
         if ($settings['max_upload_size'] < 1 || $settings['max_upload_size'] > 50) {
             throw new Exception('Upload size must be between 1-50 MB');
+        }
+
+        // Validate confetti window
+        if ($settings['enable_confetti'] === '1') {
+            if (empty($settings['confetti_expires_at'])) {
+                throw new Exception('Please select when the confetti animation should stop (within 24 hours).');
+            }
+
+            $expiryTimestamp = strtotime($settings['confetti_expires_at']);
+            if ($expiryTimestamp === false) {
+                throw new Exception('Invalid confetti end date.');
+            }
+
+            $now = time();
+            if ($expiryTimestamp <= $now) {
+                throw new Exception('Confetti end time must be in the future.');
+            }
+
+            if (($expiryTimestamp - $now) > 86400) {
+                throw new Exception('Confetti can only stay live for up to 24 hours.');
+            }
+
+            $settings['confetti_expires_at'] = date('Y-m-d\TH:i', $expiryTimestamp);
+        } else {
+            $settings['confetti_expires_at'] = '';
         }
         
         // Update each setting
@@ -68,8 +95,18 @@ $currentSettings = [
     'site_title' => get_setting('site_title', 'Artist Portfolio'),
     'site_description' => get_setting('site_description', ''),
     'enable_prices' => get_setting('enable_prices', '1'),
-    'enable_inquiries' => get_setting('enable_inquiries', '1')
+    'enable_inquiries' => get_setting('enable_inquiries', '1'),
+    'enable_confetti' => get_setting('enable_confetti', '0'),
+    'confetti_expires_at' => get_setting('confetti_expires_at', '')
 ];
+
+$confettiExpiresInput = '';
+if (!empty($currentSettings['confetti_expires_at'])) {
+    $ts = strtotime($currentSettings['confetti_expires_at']);
+    if ($ts !== false) {
+        $confettiExpiresInput = date('Y-m-d\TH:i', $ts);
+    }
+}
 
 $csrfToken = generate_csrf_token();
 ?>
@@ -248,6 +285,35 @@ $csrfToken = generate_csrf_token();
                         >
                         <span class="ml-2 text-sm text-gray-700">Enable WhatsApp inquiry form</span>
                     </label>
+                </div>
+            </div>
+
+            <!-- Confetti Celebration -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-2">Confetti celebration</h3>
+                <p class="text-sm text-gray-500 mb-4">Launch a one-day confetti burst for the birthday surprise. Pick an end time within the next 24 hours and the effect will disappear automatically after that.</p>
+                <div class="flex flex-col md:flex-row md:items-center gap-6">
+                    <label class="flex items-center">
+                        <input 
+                            type="checkbox" 
+                            name="enable_confetti" 
+                            value="1"
+                            class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                            <?php echo $currentSettings['enable_confetti'] === '1' ? 'checked' : ''; ?>
+                        >
+                        <span class="ml-2 text-sm text-gray-700">Show confetti on site load</span>
+                    </label>
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Stop showing after</label>
+                        <input 
+                            type="datetime-local" 
+                            name="confetti_expires_at"
+                            class="w-full md:max-w-sm px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            value="<?php echo h($confettiExpiresInput); ?>"
+                            min="<?php echo h(date('Y-m-d\TH:i')); ?>"
+                        >
+                        <p class="text-xs text-gray-500 mt-2">Must be within the next 24 hours to keep the experience special.</p>
+                    </div>
                 </div>
             </div>
 

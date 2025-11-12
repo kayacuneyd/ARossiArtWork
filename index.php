@@ -30,6 +30,10 @@ $artistEmailPublic = get_setting('public_email', 'studio@arossiartwork.com');
 $artistInstagram = get_setting('instagram_handle', '@arossi.art');
 $instagramHandleLink = ltrim($artistInstagram, '@');
 $whatsappPhone = get_setting('whatsapp_phone', '+447123456789');
+$enableConfetti = get_setting('enable_confetti', '0');
+$confettiExpiresAt = get_setting('confetti_expires_at', '');
+$confettiExpiresTimestamp = $confettiExpiresAt ? strtotime($confettiExpiresAt) : 0;
+$showConfetti = $enableConfetti === '1' && $confettiExpiresTimestamp && $confettiExpiresTimestamp > time();
 
 $statHighlights = [
     [
@@ -652,6 +656,48 @@ $csrfToken = generate_csrf_token();
     </div>
 
     <div id="toast" class="hidden fixed top-6 right-6 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium"></div>
+
+    <?php if ($showConfetti): ?>
+        <script defer src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" integrity="sha256-Emj5Zk90un0nLBKBPXn1HULICwhf66A1VpzwuNFuIB8=" crossorigin="anonymous"></script>
+        <script>
+            window.addEventListener('load', function() {
+                if (typeof confetti !== 'function') {
+                    return;
+                }
+
+                const storageKey = 'confetti-<?php echo (int) $confettiExpiresTimestamp; ?>';
+                if (sessionStorage.getItem(storageKey)) {
+                    return;
+                }
+                sessionStorage.setItem(storageKey, '1');
+
+                const duration = 4000;
+                const animationEnd = Date.now() + duration;
+                const defaults = { startVelocity: 35, spread: 360, ticks: 80, zIndex: 9999 };
+
+                const randomInRange = (min, max) => Math.random() * (max - min) + min;
+
+                const interval = setInterval(() => {
+                    const timeLeft = animationEnd - Date.now();
+                    if (timeLeft <= 0) {
+                        clearInterval(interval);
+                        return;
+                    }
+
+                    const particleCount = Math.floor(60 * (timeLeft / duration));
+
+                    confetti(Object.assign({}, defaults, {
+                        particleCount,
+                        origin: { x: randomInRange(0.1, 0.3), y: 0.1 }
+                    }));
+                    confetti(Object.assign({}, defaults, {
+                        particleCount,
+                        origin: { x: randomInRange(0.7, 0.9), y: 0.1 }
+                    }));
+                }, 350);
+            });
+        </script>
+    <?php endif; ?>
 
     <script>
         let currentArtworkTitle = '';
