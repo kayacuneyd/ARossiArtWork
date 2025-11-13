@@ -146,7 +146,7 @@ Already configured for:
 Edit `assets/css/style.css` (Tailwind classes)
 
 ### Logos
-Admin Panel → Settings → Brand Logos bölümünden header, hero ve footer için üç ayrı logo yükleyebilirsin. PNG/JPG/WebP dosyaları `uploads/site/` klasörüne kaydedilir ve ön yüzde otomatik olarak ilgili bölümde gösterilir.
+Admin Panel → Settings → Brand Logos bölümünden header, hero ve footer için üç ayrı logo yükleyebilirsin. PNG/JPG/WebP dosyaları `uploads/site/` klasörüne kaydedilir; hero/mark logosu aynı zamanda favicon olarak da otomatik kullanılır.
 
 ### Change Fonts
 Update Google Fonts in header:

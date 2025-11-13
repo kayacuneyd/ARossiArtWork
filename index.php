@@ -31,6 +31,7 @@ $logoMark = $logoMark ?: ($legacyLogo ?: 'assets/brand/logo-mark.svg');
 $logoDarkUrl = $logoDark ? SITE_URL . '/' . ltrim($logoDark, '/\\') : '';
 $logoLightUrl = $logoLight ? SITE_URL . '/' . ltrim($logoLight, '/\\') : '';
 $logoMarkUrl = $logoMark ? SITE_URL . '/' . ltrim($logoMark, '/\\') : '';
+$faviconUrl = $logoMarkUrl ?: ($logoDarkUrl ?: SITE_URL . '/assets/brand/logo-mark.svg');
 $enablePrices = get_setting('enable_prices', '1');
 $enableInquiries = get_setting('enable_inquiries', '1');
 
@@ -136,6 +137,8 @@ $csrfToken = generate_csrf_token();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="<?php echo h($siteDescription); ?>">
     <title><?php echo h($siteTitle); ?></title>
+    <link rel="icon" href="<?php echo h($faviconUrl); ?>" type="image/<?php echo str_ends_with(strtolower($faviconUrl), '.svg') ? 'svg+xml' : 'png'; ?>">
+    <link rel="apple-touch-icon" href="<?php echo h($faviconUrl); ?>">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
