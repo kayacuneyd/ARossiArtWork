@@ -74,6 +74,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verify_csrf_token($_POST['csrf_toke
             $settings['confetti_expires_at'] = '';
         }
         
+        // Handle logo removal/upload
+        $currentLogo = get_setting('site_logo', '');
+        $logoUploadProvided = isset($_FILES['site_logo']) && ($_FILES['site_logo']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
+        $removeLogoRequested = !empty($_POST['remove_logo']) && $currentLogo;
+
+        if ($removeLogoRequested) {
+            $logoPath = APP_ROOT . '/' . ltrim($currentLogo, '/\\');
+            if (is_file($logoPath)) {
+                @unlink($logoPath);
+            }
+            set_setting('site_logo', '');
+            $currentLogo = '';
+        }
+
+        if ($logoUploadProvided) {
+            $logoErrors = validate_image_file($_FILES['site_logo']);
+            if (!empty($logoErrors)) {
+                throw new Exception('Logo upload failed: ' . implode(', ', $logoErrors));
+            }
+
+            $logoDir = APP_ROOT . '/uploads/site/';
+            if (!is_dir($logoDir) && !mkdir($logoDir, 0755, true)) {
+                throw new Exception('Unable to prepare directory for the logo upload.');
+            }
+
+            $ext = strtolower(pathinfo($_FILES['site_logo']['name'], PATHINFO_EXTENSION));
+            $logoFilename = 'logo_' . bin2hex(random_bytes(8)) . '.' . $ext;
+            $logoDestination = $logoDir . $logoFilename;
+
+            if (!move_uploaded_file($_FILES['site_logo']['tmp_name'], $logoDestination)) {
+                throw new Exception('Failed to save the uploaded logo.');
+            }
+
+            if ($currentLogo) {
+                $oldLogoPath = APP_ROOT . '/' . ltrim($currentLogo, '/\\');
+                if (is_file($oldLogoPath)) {
+                    @unlink($oldLogoPath);
+                }
+            }
+
+            $relativeLogoPath = 'uploads/site/' . $logoFilename;
+            set_setting('site_logo', $relativeLogoPath);
+            $currentLogo = $relativeLogoPath;
+        }
+
         // Update each setting
         foreach ($settings as $key => $value) {
             set_setting($key, $value);
@@ -94,6 +139,7 @@ $currentSettings = [
     'max_upload_size' => get_setting('max_upload_size', '8'),
     'site_title' => get_setting('site_title', 'Artist Portfolio'),
     'site_description' => get_setting('site_description', ''),
+    'site_logo' => get_setting('site_logo', ''),
     'enable_prices' => get_setting('enable_prices', '1'),
     'enable_inquiries' => get_setting('enable_inquiries', '1'),
     'enable_confetti' => get_setting('enable_confetti', '0'),
@@ -168,7 +214,7 @@ $csrfToken = generate_csrf_token();
             </div>
         <?php endif; ?>
 
-        <form method="POST" action="" class="space-y-8">
+        <form method="POST" action="" enctype="multipart/form-data" class="space-y-8">
             <input type="hidden" name="csrf_token" value="<?php echo $csrfToken; ?>">
 
             <!-- Contact Settings -->
@@ -235,6 +281,39 @@ $csrfToken = generate_csrf_token();
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                             placeholder="Contemporary art portfolio"
                         ><?php echo h($currentSettings['site_description']); ?></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Site Logo
+                        </label>
+                        <input 
+                            type="file" 
+                            name="site_logo"
+                            accept="image/png,image/jpeg,image/webp"
+                            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
+                        >
+                        <p class="mt-1 text-sm text-gray-500">PNG, JPG or WebP up to <?php echo h(format_bytes(MAX_UPLOAD_SIZE)); ?>.</p>
+                        <?php if (!empty($currentSettings['site_logo'])): ?>
+                            <div class="mt-4 flex flex-col sm:flex-row sm:items-center gap-4">
+                                <img 
+                                    src="<?php echo SITE_URL . '/' . h($currentSettings['site_logo']); ?>" 
+                                    alt="Current site logo" 
+                                    class="h-16 w-auto max-w-xs bg-white border border-gray-200 rounded-lg p-2 object-contain"
+                                >
+                                <label class="inline-flex items-center text-sm text-gray-700">
+                                    <input 
+                                        type="checkbox" 
+                                        name="remove_logo" 
+                                        value="1"
+                                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    >
+                                    <span class="ml-2">Remove current logo</span>
+                                </label>
+                            </div>
+                        <?php else: ?>
+                            <p class="mt-2 text-sm text-gray-500">No logo uploaded yet. The site title text will be shown instead.</p>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

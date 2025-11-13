@@ -19,6 +19,8 @@ $artworks = $db->fetchAll("
 // Get settings
 $siteTitle = get_setting('site_title', 'Artist Portfolio');
 $siteDescription = get_setting('site_description', 'Contemporary art portfolio');
+$siteLogo = get_setting('site_logo', '');
+$siteLogoUrl = $siteLogo ? SITE_URL . '/' . ltrim($siteLogo, '/\\') : '';
 $enablePrices = get_setting('enable_prices', '1');
 $enableInquiries = get_setting('enable_inquiries', '1');
 
@@ -179,9 +181,20 @@ $csrfToken = generate_csrf_token();
     <header class="bg-white shadow-sm sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div class="flex justify-between items-center">
-                <h1 class="text-3xl md:text-4xl font-bold text-gray-900">
-                    <?php echo h($siteTitle); ?>
-                </h1>
+                <div class="flex items-center gap-4">
+                    <?php if ($siteLogoUrl): ?>
+                        <img 
+                            src="<?php echo h($siteLogoUrl); ?>" 
+                            alt="<?php echo h($siteTitle); ?>" 
+                            class="h-12 w-auto object-contain"
+                        >
+                        <h1 class="sr-only"><?php echo h($siteTitle); ?></h1>
+                    <?php else: ?>
+                        <h1 class="text-3xl md:text-4xl font-bold text-gray-900">
+                            <?php echo h($siteTitle); ?>
+                        </h1>
+                    <?php endif; ?>
+                </div>
                 <?php if ($enableInquiries): ?>
                     <button 
                         onclick="openInquiryModal()"
@@ -200,6 +213,16 @@ $csrfToken = generate_csrf_token();
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
                 <div class="grid lg:grid-cols-2 gap-12 items-center">
                     <div>
+                        <?php if ($siteLogoUrl): ?>
+                            <div class="mb-6">
+                                <img 
+                                    src="<?php echo h($siteLogoUrl); ?>" 
+                                    alt="<?php echo h($siteTitle); ?>" 
+                                    class="h-16 w-auto object-contain drop-shadow-xl"
+                                >
+                                <span class="sr-only"><?php echo h($siteTitle); ?></span>
+                            </div>
+                        <?php endif; ?>
                         <p class="inline-flex items-center text-sm uppercase tracking-[0.3em] text-slate-300 mb-4">
                             <?php echo h($artistLocation); ?>
                         </p>
@@ -468,8 +491,17 @@ $csrfToken = generate_csrf_token();
     <footer class="bg-slate-950 text-slate-200 mt-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 grid gap-10 md:grid-cols-3">
             <div>
-                <p class="text-sm uppercase tracking-[0.3em] text-slate-400">Signature</p>
-                <h3 class="text-3xl font-semibold text-white mt-3"><?php echo h($artistName); ?></h3>
+                <?php if ($siteLogoUrl): ?>
+                    <img 
+                        src="<?php echo h($siteLogoUrl); ?>" 
+                        alt="<?php echo h($siteTitle); ?>" 
+                        class="h-14 w-auto object-contain mb-4"
+                    >
+                    <p class="sr-only"><?php echo h($artistName); ?></p>
+                <?php else: ?>
+                    <p class="text-sm uppercase tracking-[0.3em] text-slate-400">Signature</p>
+                    <h3 class="text-3xl font-semibold text-white mt-3"><?php echo h($artistName); ?></h3>
+                <?php endif; ?>
                 <p class="text-slate-300 mt-4 leading-relaxed max-w-md">
                     <?php echo h($artistTagline); ?>
                 </p>
