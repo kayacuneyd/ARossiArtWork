@@ -181,17 +181,18 @@ $csrfToken = generate_csrf_token();
         }
         @keyframes neonPulse {
             0%, 100% {
-                box-shadow: 0 0 12px rgba(59, 130, 246, 0.6), 0 0 24px rgba(14, 165, 233, 0.4);
-                filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.5));
+                box-shadow: 0 0 14px rgba(30, 64, 175, 0.7), 0 0 28px rgba(15, 23, 42, 0.6);
+                filter: drop-shadow(0 0 6px rgba(15, 23, 42, 0.8));
             }
             50% {
-                box-shadow: 0 0 18px rgba(59, 130, 246, 0.9), 0 0 32px rgba(14, 165, 233, 0.7);
-                filter: drop-shadow(0 0 12px rgba(14, 165, 233, 0.7));
+                box-shadow: 0 0 22px rgba(59, 130, 246, 0.9), 0 0 36px rgba(14, 116, 144, 0.8);
+                filter: drop-shadow(0 0 12px rgba(14, 116, 144, 0.9));
             }
         }
         .neon-button {
-            animation: neonPulse 2.4s ease-in-out infinite;
-            box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
+            animation: neonPulse 2.8s ease-in-out infinite;
+            box-shadow: 0 0 14px rgba(30, 64, 175, 0.5);
+            background-image: linear-gradient(120deg, #0f172a, #1d4ed8 45%, #0ea5e9 90%);
         }
         .filter-chip {
             padding: 0.5rem 1.2rem;
@@ -233,7 +234,7 @@ $csrfToken = generate_csrf_token();
                 <?php if ($enableInquiries): ?>
                     <button 
                         onclick="openInquiryModal()"
-                        class="relative inline-flex items-center justify-center bg-gradient-to-r from-blue-500 via-sky-400 to-cyan-400 text-white px-7 py-3 rounded-full font-semibold tracking-wide transition-transform hover:scale-105 active:scale-95 neon-button"
+                        class="relative inline-flex items-center justify-center text-white px-8 py-3 rounded-full font-semibold tracking-wide transition-transform hover:scale-105 active:scale-95 neon-button"
                     >
                         <span class="text-sm uppercase tracking-[0.2em]">Request Artwork</span>
                         <span class="absolute inset-0 rounded-full border border-white/30 pointer-events-none"></span>
