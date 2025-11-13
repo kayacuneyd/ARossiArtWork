@@ -19,8 +19,13 @@ $artworks = $db->fetchAll("
 // Get settings
 $siteTitle = get_setting('site_title', 'Artist Portfolio');
 $siteDescription = get_setting('site_description', 'Contemporary art portfolio');
-$siteLogo = get_setting('site_logo', '');
-$siteLogoUrl = $siteLogo ? SITE_URL . '/' . ltrim($siteLogo, '/\\') : '';
+$logoDark = get_setting('site_logo_dark', 'assets/brand/logo-dark.svg');
+$logoLight = get_setting('site_logo_light', 'assets/brand/logo-light.svg');
+$logoMark = get_setting('site_logo_mark', 'assets/brand/logo-mark.svg');
+
+$logoDarkUrl = $logoDark ? SITE_URL . '/' . ltrim($logoDark, '/\\') : '';
+$logoLightUrl = $logoLight ? SITE_URL . '/' . ltrim($logoLight, '/\\') : '';
+$logoMarkUrl = $logoMark ? SITE_URL . '/' . ltrim($logoMark, '/\\') : '';
 $enablePrices = get_setting('enable_prices', '1');
 $enableInquiries = get_setting('enable_inquiries', '1');
 
@@ -158,6 +163,17 @@ $csrfToken = generate_csrf_token();
         img.loaded {
             opacity: 1;
         }
+        .brand-logo {
+            display: inline-block;
+            height: 60px;
+            width: auto;
+        }
+        .brand-logo--hero {
+            height: 84px;
+        }
+        .brand-logo--footer {
+            height: 72px;
+        }
         .filter-chip {
             padding: 0.5rem 1.2rem;
             border-radius: 9999px;
@@ -182,13 +198,13 @@ $csrfToken = generate_csrf_token();
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div class="flex justify-between items-center">
                 <div class="flex items-center gap-4">
-                    <?php if ($siteLogoUrl): ?>
+                    <?php if ($logoDarkUrl): ?>
                         <img 
-                            src="<?php echo h($siteLogoUrl); ?>" 
+                            src="<?php echo h($logoDarkUrl); ?>" 
                             alt="<?php echo h($siteTitle); ?>" 
-                            class="h-12 w-auto object-contain"
+                            class="brand-logo"
                         >
-                        <h1 class="sr-only"><?php echo h($siteTitle); ?></h1>
+                        <span class="sr-only"><?php echo h($siteTitle); ?></span>
                     <?php else: ?>
                         <h1 class="text-3xl md:text-4xl font-bold text-gray-900">
                             <?php echo h($siteTitle); ?>
@@ -213,12 +229,12 @@ $csrfToken = generate_csrf_token();
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
                 <div class="grid lg:grid-cols-2 gap-12 items-center">
                     <div>
-                        <?php if ($siteLogoUrl): ?>
+                        <?php if ($logoMarkUrl || $logoLightUrl): ?>
                             <div class="mb-6">
                                 <img 
-                                    src="<?php echo h($siteLogoUrl); ?>" 
-                                    alt="<?php echo h($siteTitle); ?>" 
-                                    class="h-16 w-auto object-contain drop-shadow-xl"
+                                    src="<?php echo h($logoMarkUrl ?: $logoLightUrl); ?>" 
+                                    alt="<?php echo h($siteTitle); ?>"
+                                    class="brand-logo brand-logo--hero drop-shadow-xl"
                                 >
                                 <span class="sr-only"><?php echo h($siteTitle); ?></span>
                             </div>
@@ -491,11 +507,11 @@ $csrfToken = generate_csrf_token();
     <footer class="bg-slate-950 text-slate-200 mt-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 grid gap-10 md:grid-cols-3">
             <div>
-                <?php if ($siteLogoUrl): ?>
+                <?php if ($logoLightUrl): ?>
                     <img 
-                        src="<?php echo h($siteLogoUrl); ?>" 
+                        src="<?php echo h($logoLightUrl); ?>" 
                         alt="<?php echo h($siteTitle); ?>" 
-                        class="h-14 w-auto object-contain mb-4"
+                        class="brand-logo brand-logo--footer mb-4"
                     >
                     <p class="sr-only"><?php echo h($artistName); ?></p>
                 <?php else: ?>
