@@ -179,6 +179,20 @@ $csrfToken = generate_csrf_token();
         .brand-logo--footer {
             height: 72px;
         }
+        @keyframes neonPulse {
+            0%, 100% {
+                box-shadow: 0 0 12px rgba(59, 130, 246, 0.6), 0 0 24px rgba(14, 165, 233, 0.4);
+                filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.5));
+            }
+            50% {
+                box-shadow: 0 0 18px rgba(59, 130, 246, 0.9), 0 0 32px rgba(14, 165, 233, 0.7);
+                filter: drop-shadow(0 0 12px rgba(14, 165, 233, 0.7));
+            }
+        }
+        .neon-button {
+            animation: neonPulse 2.4s ease-in-out infinite;
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
+        }
         .filter-chip {
             padding: 0.5rem 1.2rem;
             border-radius: 9999px;
@@ -219,9 +233,10 @@ $csrfToken = generate_csrf_token();
                 <?php if ($enableInquiries): ?>
                     <button 
                         onclick="openInquiryModal()"
-                        class="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-3 rounded-lg font-medium hover:from-blue-700 hover:to-blue-600 transition transform hover:scale-105 active:scale-95"
+                        class="relative inline-flex items-center justify-center bg-gradient-to-r from-blue-500 via-sky-400 to-cyan-400 text-white px-7 py-3 rounded-full font-semibold tracking-wide transition-transform hover:scale-105 active:scale-95 neon-button"
                     >
-                        Request Artwork
+                        <span class="text-sm uppercase tracking-[0.2em]">Request Artwork</span>
+                        <span class="absolute inset-0 rounded-full border border-white/30 pointer-events-none"></span>
                     </button>
                 <?php endif; ?>
             </div>
