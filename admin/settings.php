@@ -14,6 +14,26 @@ require_login();
 $success = '';
 $error = '';
 
+$currentLogoValues = [];
+foreach ($logoFields as $key => $meta) {
+    $currentLogoValues[$key] = get_setting($key, '');
+}
+
+$logoFields = [
+    'site_logo_dark' => [
+        'label' => 'Navigation Logo (light background)',
+        'description' => 'Shown in the sticky header and any light sections. Upload a dark/colored version with transparent background.'
+    ],
+    'site_logo_light' => [
+        'label' => 'Footer Logo (dark background)',
+        'description' => 'Used in the dark footer or hero blocks. Upload a light/inverted version so it stays visible.'
+    ],
+    'site_logo_mark' => [
+        'label' => 'Hero Signature / Mark',
+        'description' => 'Square or monogram mark that appears in the hero intro. Ideal for simplified symbols.'
+    ],
+];
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && verify_csrf_token($_POST['csrf_token'] ?? '')) {
     try {
@@ -74,54 +94,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verify_csrf_token($_POST['csrf_toke
             $settings['confetti_expires_at'] = '';
         }
         
-        // Handle logo removal/upload
-        $currentLogo = get_setting('site_logo', '');
-        $logoUploadProvided = isset($_FILES['site_logo']) && ($_FILES['site_logo']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
-        $removeLogoRequested = !empty($_POST['remove_logo']) && $currentLogo;
-
-        if ($removeLogoRequested) {
-            $logoPath = APP_ROOT . '/' . ltrim($currentLogo, '/\\');
-            if (is_file($logoPath)) {
-                @unlink($logoPath);
-            }
-            set_setting('site_logo', '');
-            $currentLogo = '';
+        // Handle per-surface logos
+        $logoDir = APP_ROOT . '/uploads/site/';
+        if (!is_dir($logoDir) && !mkdir($logoDir, 0755, true)) {
+            throw new Exception('Unable to prepare directory for logo uploads.');
         }
 
-        if ($logoUploadProvided) {
-            $logoErrors = validate_image_file($_FILES['site_logo']);
-            if (!empty($logoErrors)) {
-                throw new Exception('Logo upload failed: ' . implode(', ', $logoErrors));
-            }
-
-            $logoDir = APP_ROOT . '/uploads/site/';
-            if (!is_dir($logoDir) && !mkdir($logoDir, 0755, true)) {
-                throw new Exception('Unable to prepare directory for the logo upload.');
-            }
-
-            $ext = strtolower(pathinfo($_FILES['site_logo']['name'], PATHINFO_EXTENSION));
-            $logoFilename = 'logo_' . bin2hex(random_bytes(8)) . '.' . $ext;
-            $logoDestination = $logoDir . $logoFilename;
-
-            if (!move_uploaded_file($_FILES['site_logo']['tmp_name'], $logoDestination)) {
-                throw new Exception('Failed to save the uploaded logo.');
-            }
-
-            if ($currentLogo) {
-                $oldLogoPath = APP_ROOT . '/' . ltrim($currentLogo, '/\\');
-                if (is_file($oldLogoPath)) {
-                    @unlink($oldLogoPath);
+        foreach ($logoFields as $settingKey => $meta) {
+            $currentValue = get_setting($settingKey, '');
+            $removeField = 'remove_' . $settingKey;
+            if (!empty($_POST[$removeField]) && $currentValue) {
+                $absolute = APP_ROOT . '/' . ltrim($currentValue, '/\\');
+                if (is_file($absolute)) {
+                    @unlink($absolute);
                 }
+                set_setting($settingKey, '');
+                $currentValue = '';
             }
 
-            $relativeLogoPath = 'uploads/site/' . $logoFilename;
-            set_setting('site_logo', $relativeLogoPath);
-            $currentLogo = $relativeLogoPath;
+            $file = $_FILES[$settingKey] ?? null;
+            if ($file && ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+                $logoErrors = validate_image_file($file);
+                if (!empty($logoErrors)) {
+                    throw new Exception($meta['label'] . ' upload failed: ' . implode(', ', $logoErrors));
+                }
+
+                $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+                $logoFilename = $settingKey . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
+                $logoDestination = $logoDir . $logoFilename;
+
+                if (!move_uploaded_file($file['tmp_name'], $logoDestination)) {
+                    throw new Exception('Failed to save ' . strtolower($meta['label']) . '.');
+                }
+
+                if ($currentValue) {
+                    $oldPath = APP_ROOT . '/' . ltrim($currentValue, '/\\');
+                    if (is_file($oldPath)) {
+                        @unlink($oldPath);
+                    }
+                }
+
+                $relativeLogoPath = 'uploads/site/' . $logoFilename;
+                set_setting($settingKey, $relativeLogoPath);
+                $currentValue = $relativeLogoPath;
+            }
+
+            $currentLogoValues[$settingKey] = $currentValue;
         }
 
         // Update each setting
         foreach ($settings as $key => $value) {
             set_setting($key, $value);
+            $currentSettings[$key] = $value;
         }
         
         log_action('Update Settings', 'Settings updated');
@@ -285,35 +309,40 @@ $csrfToken = generate_csrf_token();
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Site Logo
+                            Brand Logos
                         </label>
-                        <input 
-                            type="file" 
-                            name="site_logo"
-                            accept="image/png,image/jpeg,image/webp"
-                            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
-                        >
-                        <p class="mt-1 text-sm text-gray-500">PNG, JPG or WebP up to <?php echo h(format_bytes(MAX_UPLOAD_SIZE)); ?>.</p>
-                        <?php if (!empty($currentSettings['site_logo'])): ?>
-                            <div class="mt-4 flex flex-col sm:flex-row sm:items-center gap-4">
-                                <img 
-                                    src="<?php echo SITE_URL . '/' . h($currentSettings['site_logo']); ?>" 
-                                    alt="Current site logo" 
-                                    class="h-16 w-auto max-w-xs bg-white border border-gray-200 rounded-lg p-2 object-contain"
-                                >
-                                <label class="inline-flex items-center text-sm text-gray-700">
+                        <p class="text-sm text-gray-500 mb-4">Upload different logo variations for the header, hero and footer. Transparent PNG or SVG recommended.</p>
+                        <div class="grid gap-6 md:grid-cols-3">
+                            <?php foreach ($logoFields as $key => $meta): ?>
+                                <div class="border border-gray-200 rounded-lg p-4">
+                                    <p class="text-sm font-semibold text-gray-800"><?php echo h($meta['label']); ?></p>
+                                    <p class="text-xs text-gray-500 mb-4"><?php echo h($meta['description']); ?></p>
+                                    <?php if (!empty($currentLogoValues[$key])): ?>
+                                        <img 
+                                            src="<?php echo SITE_URL . '/' . h($currentLogoValues[$key]); ?>" 
+                                            alt="<?php echo h($meta['label']); ?>"
+                                            class="h-16 w-auto object-contain bg-white border border-gray-100 rounded mb-3 p-2"
+                                        >
+                                        <label class="flex items-center text-xs text-gray-600 mb-3">
+                                            <input 
+                                                type="checkbox" 
+                                                name="remove_<?php echo h($key); ?>" 
+                                                value="1"
+                                                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                            >
+                                            <span class="ml-2">Remove current logo</span>
+                                        </label>
+                                    <?php endif; ?>
                                     <input 
-                                        type="checkbox" 
-                                        name="remove_logo" 
-                                        value="1"
-                                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                        type="file" 
+                                        name="<?php echo h($key); ?>"
+                                        accept="image/png,image/jpeg,image/webp"
+                                        class="block w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
                                     >
-                                    <span class="ml-2">Remove current logo</span>
-                                </label>
-                            </div>
-                        <?php else: ?>
-                            <p class="mt-2 text-sm text-gray-500">No logo uploaded yet. The site title text will be shown instead.</p>
-                        <?php endif; ?>
+                                    <p class="mt-2 text-[11px] text-gray-500">PNG/JPG/WebP • up to <?php echo h(format_bytes(MAX_UPLOAD_SIZE)); ?></p>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
                     </div>
                 </div>
             </div>

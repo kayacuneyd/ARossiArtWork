@@ -95,7 +95,10 @@ INSERT INTO `settings` (`setting_key`, `setting_value`, `setting_type`, `descrip
 ('artworks_per_page', '12', 'number', 'Artworks to display per page'),
 ('enable_prices', '1', 'boolean', 'Show prices on gallery'),
 ('enable_inquiries', '1', 'boolean', 'Enable WhatsApp inquiry form'),
-('gallery_columns', '3', 'number', 'Gallery grid columns (desktop)');
+('gallery_columns', '3', 'number', 'Gallery grid columns (desktop)'),
+('site_logo_dark', '', 'text', 'Logo used on light backgrounds (header)'),
+('site_logo_light', '', 'text', 'Logo used on dark backgrounds (footer/hero)'),
+('site_logo_mark', '', 'text', 'Hero monogram / signature logo');
 
 -- --------------------------------------------------------
 -- Sample data (optional - for testing)

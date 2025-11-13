@@ -19,9 +19,14 @@ $artworks = $db->fetchAll("
 // Get settings
 $siteTitle = get_setting('site_title', 'Artist Portfolio');
 $siteDescription = get_setting('site_description', 'Contemporary art portfolio');
-$logoDark = get_setting('site_logo_dark', 'assets/brand/logo-dark.svg');
-$logoLight = get_setting('site_logo_light', 'assets/brand/logo-light.svg');
-$logoMark = get_setting('site_logo_mark', 'assets/brand/logo-mark.svg');
+$legacyLogo = get_setting('site_logo', '');
+$logoDark = get_setting('site_logo_dark', '');
+$logoLight = get_setting('site_logo_light', '');
+$logoMark = get_setting('site_logo_mark', '');
+
+$logoDark = $logoDark ?: ($legacyLogo ?: 'assets/brand/logo-dark.svg');
+$logoLight = $logoLight ?: ($legacyLogo ?: 'assets/brand/logo-light.svg');
+$logoMark = $logoMark ?: ($legacyLogo ?: 'assets/brand/logo-mark.svg');
 
 $logoDarkUrl = $logoDark ? SITE_URL . '/' . ltrim($logoDark, '/\\') : '';
 $logoLightUrl = $logoLight ? SITE_URL . '/' . ltrim($logoLight, '/\\') : '';
